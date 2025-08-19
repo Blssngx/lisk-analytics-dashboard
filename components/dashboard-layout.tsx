@@ -35,7 +35,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-white">LiskTracker</h1>
+              <h1 className="text-xl font-bold text-white">Lisk Tracker</h1>
 
               {/* Desktop Navigation */}
               <div className="hidden md:ml-10 md:flex md:space-x-1">
