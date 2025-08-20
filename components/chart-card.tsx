@@ -8,13 +8,14 @@ import { useEffect, useState } from "react"
 
 interface ChartCardProps {
   title: string
+  description?: React.ReactNode
   children: React.ReactNode
   isLoading?: boolean
   onRunQuery?: () => void
   cooldownKey?: string
 }
 
-export function ChartCard({ title, children, isLoading, onRunQuery, cooldownKey }: ChartCardProps) {
+export function ChartCard({ title, description, children, isLoading, onRunQuery, cooldownKey }: ChartCardProps) {
   const COOLDOWN_MS = 5 * 60 * 1000
   const [remaining, setRemaining] = useState(0)
 
@@ -40,9 +41,11 @@ export function ChartCard({ title, children, isLoading, onRunQuery, cooldownKey 
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row ">
       <div className="grid flex-1 gap-1">
           <CardTitle>{title}</CardTitle>
-          <CardDescription>
-            Showing total visitors for the last 3 months
-          </CardDescription>
+          {description && (
+            <CardDescription>
+              {description}
+            </CardDescription>
+          )}
         </div>
         {onRunQuery && (
           <Button

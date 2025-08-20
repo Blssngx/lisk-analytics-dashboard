@@ -22,23 +22,30 @@ type WeeklyPaymentsRow = {
 const chartConfig = {
   date: { label: "Time" },
   payments: { label: "Payments", color: "var(--chart-2)" },
-  amounts: { label: "Total Amount", color: "var(--chart-1)" },
+  amounts: { label: `Total Amount`, color: "var(--chart-1)" },
 } satisfies ChartConfig
 
-export function WeeklyPaymentsChart({ data }: { data?: WeeklyPaymentsRow[] }) {
+export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow[], symbol: string }) {
   const [timeRange, setTimeRange] = React.useState("all")
   const [activeChart, setActiveChart] = React.useState<"payments" | "amounts">("payments")
 // console.log(data)
   const safeData = Array.isArray(data) ? data : []
-
+function formatAmount(amount: number) :number{
+if(!amount) return 0 
+if(amount >=0.001)return Number(amount.toFixed(6))
+else{
+  const val = 18 - Number(String(amount).split('e')[1])
+  const number = Number(`1e${val}`)
+  return Number(String(Number((amount / number))).split('e')[0])}
+}
   const items = React.useMemo(() => {
     return safeData
       .map((i) => {
         const date = new Date( i.weekStartDate || "")
         // if (isNaN(date.getTime())) return null
         const count = Number(i.paymentCount ?? 0)
-        const total = Number(i.totalPaymentsAmount ?? 0)
-        const avg = Number(i.averagePayment ?? (count > 0 ? total / count : 0))
+        const total = formatAmount(Number(i.totalPaymentsAmount ?? 0) )
+        const avg = formatAmount(Number(i.averagePayment ?? (count > 0 ? total / count : 0)))
         return { date, count, total, avg }
       })
       .filter(Boolean)
@@ -53,7 +60,7 @@ export function WeeklyPaymentsChart({ data }: { data?: WeeklyPaymentsRow[] }) {
   const maxDate = React.useMemo(() => {
     return items.reduce((acc, p) => (p.date > acc ? p.date : acc), new Date(0))
   }, [items])
-
+// console.log("Items", items)
   const rechartsData = React.useMemo(
     () =>
       items.map((p) => ({
@@ -111,16 +118,17 @@ export function WeeklyPaymentsChart({ data }: { data?: WeeklyPaymentsRow[] }) {
           </button>
           <button
             onClick={() => setActiveChart("amounts")}
+            title={`a${symbol} stands for "atto${symbol}" a unit equal to 1e-18 of a ${symbol}`}
             className={`rounded-md border border-border bg-background/40 px-4 py-2 text-left transition-colors ${
               activeChart === "amounts" ? "bg-muted/60" : "hover:bg-muted/40"
             }`}
           >
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
-              <span>{chartConfig.amounts.label}</span>
+              <span>{chartConfig.amounts.label} (a{symbol})</span>
             </div>
             <div className="text-foreground text-2xl font-bold">
-              {legendStats.totalAmount}
+              {legendStats.totalAmount.toFixed(2)}
             </div>
           </button>
         </div>
@@ -175,8 +183,8 @@ export function WeeklyPaymentsChart({ data }: { data?: WeeklyPaymentsRow[] }) {
                         const avg = item?.payload?.avg || 0
                         return (
                           `${Number(value || 0).toLocaleString()} payments` +
-                          (total ? ` | Total: ${total} ` : "") +
-                          (avg ? ` | Avg: ${avg}` : "")
+                          (total ? ` | Total: ${total}  a${symbol}` : "") +
+                          (avg ? ` | Avg: ${avg} a${symbol}` : "")
                         )
                       }
                       return `${Number(value || 0).toLocaleString()}`
@@ -221,7 +229,7 @@ export function WeeklyPaymentsChart({ data }: { data?: WeeklyPaymentsRow[] }) {
                     formatter={(value, name) => {
                       if (name === "amounts") {
                         const num = Number(value || 0)
-                        return `${num}`
+                        return `${num.toFixed(2)} a${symbol}`
                       }
                       return `${Number(value || 0).toLocaleString()}`
                     }}
@@ -239,6 +247,11 @@ export function WeeklyPaymentsChart({ data }: { data?: WeeklyPaymentsRow[] }) {
             </LineChart>
           )}
         </ChartContainer>
+        {activeChart === "amounts" && (
+          <p className="mt-4 text-xs text-muted-foreground">
+            Note: amounts are displayed in a{symbol} (atto{symbol}, 1e-18 of a {symbol}).
+          </p>
+        )}
       </div>
     </>
   )

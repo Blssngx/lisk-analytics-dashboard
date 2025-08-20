@@ -28,16 +28,16 @@ const chartConfig = {
     label: "Time",
   },
   desktop: {
-    label: "Transactions",
+    label: "Transaction Count",
     color: "var(--chart-1)",
   },
   mobile: {
-    label: `Amount`,
+    label: `Transaction Volume`,
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig
 
-export function ChartAreaInteractive({ data, isLoading }: { data?: CumulativeGrowthRow[], isLoading?: boolean }) {
+export function ChartAreaInteractive({ data, isLoading, symbol }: { data?: CumulativeGrowthRow[], isLoading?: boolean, symbol: string }) {
   const [timeRange, setTimeRange] = React.useState("all")
   const [activeChart, setActiveChart] = React.useState<"desktop" | "mobile" | "all">("all")
 // console.log(data)
@@ -107,7 +107,21 @@ export function ChartAreaInteractive({ data, isLoading }: { data?: CumulativeGro
     <>
       <div className="flex flex-col gap-3 px-2 pt-2 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="grid grid-cols-3 gap-3">
-          <button
+        <button
+            onClick={() => setActiveChart("all")}
+            className={`rounded-md border border-border bg-background/40 px-4 py-2 text-left transition-colors ${
+              activeChart === "all" ? "bg-muted/60" : "hover:bg-muted/40"
+            }`}
+          >
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
+              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
+              <span>All</span>
+            </div>
+            <div className="text-foreground text-2xl font-bold">
+              Both
+            </div>
+          </button> <button
             onClick={() => setActiveChart("desktop")}
             className={`rounded-md border border-border bg-background/40 px-4 py-2 text-left transition-colors ${
               activeChart === "desktop" ? "bg-muted/60" : "hover:bg-muted/40"
@@ -129,27 +143,13 @@ export function ChartAreaInteractive({ data, isLoading }: { data?: CumulativeGro
           >
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
-              <span>{chartConfig.mobile.label}</span>
+              <span>{chartConfig.mobile.label} ({symbol})</span>
             </div>
             <div className="text-foreground text-2xl font-bold">
               {legendStats.mobile.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </div>
           </button>
-          <button
-            onClick={() => setActiveChart("all")}
-            className={`rounded-md border border-border bg-background/40 px-4 py-2 text-left transition-colors ${
-              activeChart === "all" ? "bg-muted/60" : "hover:bg-muted/40"
-            }`}
-          >
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
-              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
-              <span>All</span>
-            </div>
-            <div className="text-foreground text-2xl font-bold">
-              Both
-            </div>
-          </button>
+          
         </div>
         <div className="flex items-center gap-2">
           {[

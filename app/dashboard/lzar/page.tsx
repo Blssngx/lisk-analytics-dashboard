@@ -189,7 +189,7 @@ export default function LZARPage() {
 
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <MetricCard title="Total Supply" value={tokenLoading ? "Loading..." : `${tokenData?.totalSupplyFormatted || 'N/A'} LZAR`} subtitle={tokenError ? "Error loading data" : "Fixed supply"} />
+            <MetricCard title="Total Supply" value={tokenLoading ? "Loading..." : `${Number(tokenData?.totalSupplyFormatted).toLocaleString() || 'N/A'} LZAR`} subtitle={tokenError ? "Error loading data" : "Fixed supply"} />
             <MetricCard title="Contract Address" value={tokenLoading ? "Loading..." : `${tokenData?.contractAddress?.slice(0,8)}...${tokenData?.contractAddress?.slice(-6)}`} subtitle={tokenError ? "Error loading data" : "Token Contract address"}>
               <Button onClick={() => copyToClipboard(tokenData?.contractAddress || '')} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -199,16 +199,16 @@ export default function LZARPage() {
 
           {/* Charts */}
           <div className="space-y-6">
-            <ChartCard title="Cumulative Growth" isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} onRunQuery={() => runQuery("cumulativeGrowth")} cooldownKey="cooldown:cumulative-growth">
+            <ChartCard title="Cumulative Growth" description="Cumulative transaction count and total volume for LZAR over time." isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} onRunQuery={() => runQuery("cumulativeGrowth")} cooldownKey="cooldown:cumulative-growth">
               {/* <CumulativeGrowthChart data={cumulativeDisplay} /> */}
-              <ChartAreaInteractive data={cumulativeDisplay} isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} />
+              <ChartAreaInteractive data={cumulativeDisplay} isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} symbol="LZAR"/>
             </ChartCard>
-            <ChartCard title="Unique Wallets" isLoading={loadingStates.uniqueWallets || uniqueWalletsLoading} onRunQuery={() => runQuery("uniqueWallets")} cooldownKey="cooldown:unique-wallets">
+            <ChartCard title="Unique Wallets" description="Unique wallets and new wallets over time for LZAR." isLoading={loadingStates.uniqueWallets || uniqueWalletsLoading} onRunQuery={() => runQuery("uniqueWallets")} cooldownKey="cooldown:unique-wallets">
 <UniqueWalletsDisplay data={walletsDisplay} currentTotal={currentTotalWallets} />
 </ChartCard>
 
-                <ChartCard title="Weekly Interest Payments" isLoading={loadingStates.weeklyPayments || weeklyPaymentsLoading} onRunQuery={() => runQuery("weeklyPayments")} cooldownKey="cooldown:weekly-payments">
-                  <WeeklyPaymentsChart data={weeklyDisplay} />
+                <ChartCard title="Weekly Interest Payments" description="Weekly interest payments: toggle between payment count and total amounts (aLZAR = 1e-18 LZAR)." isLoading={loadingStates.weeklyPayments || weeklyPaymentsLoading} onRunQuery={() => runQuery("weeklyPayments")} cooldownKey="cooldown:weekly-payments">
+                  <WeeklyPaymentsChart data={weeklyDisplay} symbol="LZAR"/>
                 </ChartCard>
            
           </div>

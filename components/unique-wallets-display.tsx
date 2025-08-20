@@ -91,7 +91,7 @@ export function UniqueWalletsDisplay({
 
   const legendStats = React.useMemo(() => {
     const last = filteredData.length ? filteredData[filteredData.length - 1] : undefined
-    const wallets = last?.wallets ?? 0
+    const wallets = rechartsData.length === filteredData.length ? last?.wallets ?? 0 : (last?.wallets ?? 0) - filteredData[0].wallets
     const newWallets =filteredData.reduce((acc,cur) => cur.newWallets + acc, 0)
     return { wallets, newWallets }
   }, [filteredData])
@@ -111,8 +111,9 @@ export function UniqueWalletsDisplay({
     // If max is 0, just use [0, 1] to avoid degenerate axis
     if (newWalletsMax === 0) return [0, 1]
     // You can tweak the factor below to control the scaling
-    const factor = 0.5
-    return [0, Math.max(1, Math.ceil(newWalletsMax * factor))]
+    // const factor = 
+    console.log(newWalletsMax)
+    return [0, Math.max(1, Math.ceil(newWalletsMax ))]
   }, [newWalletsMax])
 
   if (!filteredData.length) {
@@ -127,6 +128,21 @@ export function UniqueWalletsDisplay({
     <div className="rounded-xl">
       <div className="flex flex-col gap-3 px-2 pt-2 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="grid grid-cols-3 gap-3">
+        <button
+            onClick={() => setActiveChart("all")}
+            className={`rounded-md border border-border bg-background/40 px-4 py-2 text-left transition-colors ${
+              activeChart === "all" ? "bg-muted/60" : "hover:bg-muted/40"
+            }`}
+          >
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
+              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
+              <span>All</span>
+            </div>
+            <div className="text-foreground text-2xl font-bold">
+              Both
+            </div>
+          </button>
           <button
             onClick={() => setActiveChart("wallets")}
             className={`rounded-md border border-border bg-background/40 px-4 py-2 text-left transition-colors ${
@@ -155,21 +171,7 @@ export function UniqueWalletsDisplay({
               {legendStats.newWallets.toLocaleString()}
             </div>
           </button>
-          <button
-            onClick={() => setActiveChart("all")}
-            className={`rounded-md border border-border bg-background/40 px-4 py-2 text-left transition-colors ${
-              activeChart === "all" ? "bg-muted/60" : "hover:bg-muted/40"
-            }`}
-          >
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
-              <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
-              <span>All</span>
-            </div>
-            <div className="text-foreground text-2xl font-bold">
-              Both
-            </div>
-          </button>
+         
         </div>
         <div className="flex items-center gap-2">
           {[
@@ -286,19 +288,22 @@ export function UniqueWalletsDisplay({
             {(activeChart === "wallets" || activeChart === "all") && (
               <Area
                 dataKey="wallets"
-                type="natural"
+                type="monotone"
                 fill="url(#fillWallets)"
                 stroke="var(--color-wallets)"
                 yAxisId="left"
+                baseValue={0}
               />
             )}
             {(activeChart === "newWallets" || activeChart === "all") && (
               <Area
                 dataKey="newWallets"
-                type="natural"
+                type="monotone"
                 fill="url(#fillNewWallets)"
                 stroke="var(--color-newWallets)"
                 yAxisId="right"
+                baseValue={0}
+                connectNulls
               />
             )}
           </AreaChart>
