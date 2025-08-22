@@ -7,12 +7,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({} as any))
     const contractAddress: string | undefined = body?.contractAddress
-
+// console.log(contractAddress)
     if (!contractAddress) {
       return NextResponse.json({ error: 'contractAddress is required' }, { status: 400 })
     }
 
-    const token = await TokenDataService.getTokenByContractAddress(contractAddress)
+    const token = await TokenDataService.getTokenByContractAddress(contractAddress.toLowerCase())
     if (!token) {
       return NextResponse.json({ error: 'Token not found for contractAddress' }, { status: 404 })
     }
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     let allTransactions: any[] = []
     let cursor: string | null = null
     do {
-      const url = new URL(`https://deep-index.moralis.io/api/v2.2/${token.contractAddress}`)
+      const url = new URL(`https://deep-index.moralis.io/api/v2.2/${token.contractAddress}/verbose`)
       url.searchParams.set("chain", "0x46f")
       url.searchParams.set("order", "DESC")
       url.searchParams.set("limit", "100")

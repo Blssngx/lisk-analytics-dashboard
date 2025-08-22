@@ -93,8 +93,20 @@ export class WeeklyPaymentsProcessor {
       
       // Check if this transaction calls the specific method
       if (tx.input && tx.input.startsWith(methodId)) {
-        const amount = this.decodeTransferAmount(tx.input, decimals);
-        // console.log("AMount", amount)
+        const amount: number = Array.isArray(tx.logs)
+          ? tx.logs.reduce((acc: number, currentLog: { decoded_event?: { params: { value: string }[] } }) => {
+              const rawValue = currentLog?.decoded_event?.params?.[2]?.value;
+              if (rawValue == null) return acc;
+              try {
+                const asBigInt = BigInt(rawValue);
+                const scaled = this.bigIntToNumber(asBigInt, 18);
+                return acc + (Number.isFinite(scaled) ? scaled : 0);
+              } catch {
+                return acc;
+              }
+            }, 0)
+          : 0;
+
         if (weeklyData.has(weekStartDate)) {
           const existing = weeklyData.get(weekStartDate)!;
           existing.totalPaymentsAmount += amount;

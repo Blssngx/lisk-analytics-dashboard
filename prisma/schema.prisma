@@ -45,6 +45,7 @@ model Token {
   priceData        TokenPriceData[]
   transactionActivity TransactionActivity[]
   hourlyActivity   HourlyActivity[]
+  tokenHolders     TokenHolders[]
 }
 
 // Stores the cumulative growth data on a daily basis
@@ -173,6 +174,27 @@ model WalletStats {
 
   // Relations to the Token model
   tokenId               String
+
+  // Ensures uniqueness
+  @@unique([tokenId, date])
+  @@index([tokenId, date])
+}
+
+// Stores token holders data
+model TokenHolders {
+  id                    String   @id @default(uuid())
+  date                  DateTime @db.Date
+  totalHolders          Int      @default(0)
+  totalSupply           Decimal  @db.Decimal(65, 30) @default(0)
+  whaleCount            Int      @default(0) // >1% of supply
+  largeCount            Int      @default(0) // 0.1% - 1% of supply
+  mediumCount           Int      @default(0) // 0.01% - 0.1% of supply
+  smallCount            Int      @default(0) // <0.01% of supply
+  holdersData           Json?    // Store detailed holders data as JSON
+
+  // Relations to the Token model
+  tokenId               String
+  token                 Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
 
   // Ensures uniqueness
   @@unique([tokenId, date])

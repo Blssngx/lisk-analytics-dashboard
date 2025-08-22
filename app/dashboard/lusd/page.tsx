@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button"
 import { ChartAreaInteractive } from "@/components/charts/cumulative-growth-chart"
 import { WeeklyPaymentsChart } from "@/components/charts/weekly-payments-chart"
 import { UniqueWalletsDisplay } from "@/components/unique-wallets-display"
+import { TokenHoldersPieChart } from "@/components/charts/holders-pie-chart"
 import { PlayCircle, TrendingUp, Copy, Check } from "lucide-react"
-import { useTokenBySymbol, useCumulativeMetrics, useWalletData, useWeeklyPayments } from "@/hooks/use-token-data"
-import { useCumulativeGrowth, useUniqueWallets, useWeeklyPayments as useMoralisWeeklyPayments, useRefreshCumulativeGrowth, useRefreshUniqueWallets, useRefreshWeeklyPayments } from "@/hooks/use-moralis-queries"
+import { useTokenBySymbol, useCumulativeMetrics, useWalletData, useWeeklyPayments, useTokenHolders } from "@/hooks/use-token-data"
+import { useCumulativeGrowth, useUniqueWallets, useWeeklyPayments as useMoralisWeeklyPayments, useRefreshCumulativeGrowth, useRefreshUniqueWallets, useRefreshWeeklyPayments, useRefreshTokenHolders } from "@/hooks/use-moralis-queries"
 
 export default function LUSDPage() {
   const LUSD_CONTRACT = '0x7b7047c49eaf68b8514a20624773ca620e2cd4a3'
@@ -25,6 +26,7 @@ export default function LUSDPage() {
   const { data: gqlCum, isLoading: gqlCumLoading, error: gqlCumError } = useCumulativeMetrics(tokenId)
   const { data: gqlWallets, isLoading: gqlWalletsLoading, error: gqlWalletsError } = useWalletData(tokenId)
   const { data: gqlWeekly, isLoading: gqlWeeklyLoading, error: gqlWeeklyError } = useWeeklyPayments(tokenId)
+  const { data: gqlHolders, isLoading: gqlHoldersLoading, error: gqlHoldersError } = useTokenHolders(tokenId)
   
   // Moralis fresh data
   const { data: cumulativeGrowthData, isLoading: cumulativeGrowthLoading } = useCumulativeGrowth(LUSD_CONTRACT)
@@ -35,11 +37,13 @@ export default function LUSDPage() {
   const refreshCumulativeGrowth = useRefreshCumulativeGrowth()
   const refreshUniqueWallets = useRefreshUniqueWallets()
   const refreshWeeklyPayments = useRefreshWeeklyPayments()
+  const refreshTokenHolders = useRefreshTokenHolders()
 
   const [loadingStates, setLoadingStates] = useState({
     cumulativeGrowth: false,
     uniqueWallets: false,
     weeklyPayments: false,
+    tokenHolders: false,
     allQueries: false,
   })
 
@@ -67,6 +71,9 @@ export default function LUSDPage() {
         case "weeklyPayments":
           await refreshWeeklyPayments.mutateAsync({ contractAddress: LUSD_CONTRACT, methodId: METHOD_ID })
           break
+        case "tokenHolders":
+          await refreshTokenHolders.mutateAsync({ contractAddress: LUSD_CONTRACT })
+          break
       }
     } finally {
       setLoadingStates((prev) => ({ ...prev, [queryType]: false }))
@@ -79,7 +86,8 @@ export default function LUSDPage() {
       await Promise.all([
         refreshCumulativeGrowth.mutateAsync({ contractAddress: LUSD_CONTRACT }),
         refreshUniqueWallets.mutateAsync({ contractAddress: LUSD_CONTRACT }),
-        refreshWeeklyPayments.mutateAsync({ contractAddress: LUSD_CONTRACT, methodId: METHOD_ID })
+        refreshWeeklyPayments.mutateAsync({ contractAddress: LUSD_CONTRACT, methodId: METHOD_ID }),
+        refreshTokenHolders.mutateAsync({ contractAddress: LUSD_CONTRACT })
       ])
     } finally {
       setLoadingStates((prev) => ({ ...prev, allQueries: false }))
@@ -119,6 +127,7 @@ export default function LUSDPage() {
   const cumulativeDisplay = (Array.isArray(cumulativeGrowthData) && cumulativeGrowthData.length > 0) ? cumulativeGrowthData : cumFallback
   const walletsDisplay = (Array.isArray(uniqueWalletsData) && uniqueWalletsData.length > 0) ? uniqueWalletsData : walletsFallback
   const weeklyDisplay = (Array.isArray(weeklyPaymentsData) && weeklyPaymentsData.length > 0) ? weeklyPaymentsData : weeklyFallback
+  const holdersDisplay = gqlHolders || null
 
   // Debug logging
   // useEffect(() => {
@@ -207,8 +216,12 @@ export default function LUSDPage() {
 <UniqueWalletsDisplay data={walletsDisplay} currentTotal={currentTotalWallets} />
 </ChartCard>
 
-                <ChartCard title="Weekly Interest Payments" description="Weekly interest payments: toggle between payment count and total amounts (aLUSD = 1e-18 LUSD)." isLoading={loadingStates.weeklyPayments || weeklyPaymentsLoading} onRunQuery={() => runQuery("weeklyPayments")} cooldownKey="cooldown:weekly-payments">
+                <ChartCard title="Weekly Interest Payments" description="Weekly interest payments: toggle between payment count, total amount paid and average payments per week." isLoading={loadingStates.weeklyPayments || weeklyPaymentsLoading} onRunQuery={() => runQuery("weeklyPayments")} cooldownKey="cooldown:weekly-payments">
                   <WeeklyPaymentsChart data={weeklyDisplay} symbol="LUSD"/>
+                </ChartCard>
+                
+                <ChartCard title="Token Holders Distribution" description="Distribution of token holders by balance size categories." isLoading={loadingStates.tokenHolders} onRunQuery={() => runQuery("tokenHolders")} cooldownKey="cooldown:token-holders">
+                  <TokenHoldersPieChart data={holdersDisplay} symbol="LUSD" isLoading={gqlHoldersLoading} />
                 </ChartCard>
            
           </div>

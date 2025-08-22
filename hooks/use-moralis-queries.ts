@@ -231,6 +231,23 @@ const fetchWeeklyPayments = async (contractAddress: string, methodId: string): P
   const result = await response.json()
   return result.data || result // Return data property if it exists, otherwise return the whole result
 }
+const fetchTokenHolders = async (contractAddress: string, methodId: string): Promise<any> => {
+  const response = await fetch(`/api/queries/holders`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ contractAddress, methodId }),
+  })
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || `Failed to fetch token holders data (${response.status})`)
+  }
+  
+  const result = await response.json()
+  return result.data || result // Return data property if it exists, otherwise return the whole result
+}
 
 // React Query hooks
 export const useMoralisTokenData = (contractAddress: string) => {
@@ -288,6 +305,15 @@ export const useWeeklyPayments = (contractAddress: string, methodId: string) => 
   return useQuery({
     queryKey: ['moralis', 'weekly-payments', contractAddress, methodId],
     queryFn: () => fetchWeeklyPayments(contractAddress, methodId),
+    enabled: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  })
+}
+export const useMoralisTokenHolders = (contractAddress: string, methodId: string) => {
+  return useQuery({
+    queryKey: ['moralis', 'token-holders', contractAddress, methodId],
+    queryFn: () => fetchTokenHolders(contractAddress, methodId),
     enabled: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -433,6 +459,44 @@ export const useRefreshWeeklyPayments = () => {
     },
     onError: (error) => {
       console.error('Weekly payments refresh error:', error)
+    },
+  })
+}
+
+export const useRefreshTokenHolders = () => {
+  const queryClient = useQueryClient()
+  const COOLDOWN_MS = 5 * 60 * 1000
+  const lastRunKey = 'cooldown:token-holders'
+  
+  return useMutation({
+    mutationFn: async ({ contractAddress }: { contractAddress: string }) => {
+      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      if (Date.now() - lastRun < COOLDOWN_MS) {
+        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+        throw new Error(`Please wait ${remaining}s before running again`)
+      }
+      const response = await fetch(`/api/queries/holders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ contractAddress }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to refresh token holders data')
+      }
+      
+      localStorage.setItem(lastRunKey, String(Date.now()))
+      return response.json()
+    },
+    onSuccess: (data, { contractAddress }) => {
+      const payload = (data as any)?.data ?? data
+      queryClient.setQueryData(['moralis', 'token-holders', contractAddress], payload)
+      queryClient.invalidateQueries({ queryKey: ['graphql', 'tokenHolders'] })
+    },
+    onError: (error) => {
+      console.error('Token holders refresh error:', error)
     },
   })
 }

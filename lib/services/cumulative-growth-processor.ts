@@ -1,7 +1,12 @@
 export class CumulativeGrowthProcessor {
   static processCumulativeData(moralisData: any) {
-    const transfers = moralisData.result;
-    
+    const ZERO = "0x0000000000000000000000000000000000000000";
+
+    const transfers = moralisData.result.filter(
+      (tx: { from_address: string; to_address: string }) =>
+        tx.from_address !== ZERO && tx.to_address !== ZERO
+    );
+
     // Group transfers by date
     const dailyData = new Map<string, {
       date: string;

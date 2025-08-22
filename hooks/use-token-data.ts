@@ -48,6 +48,19 @@ export interface WeeklyPayments {
   tokenId: string
 }
 
+export interface TokenHolders {
+  id: string
+  date: string
+  totalHolders: number
+  totalSupply: string
+  whaleCount: number
+  largeCount: number
+  mediumCount: number
+  smallCount: number
+  holdersData: any
+  tokenId: string
+}
+
 // API functions
 const fetchTokens = async (): Promise<Token[]> => {
   const response = await fetch('/api/tokens')
@@ -85,6 +98,14 @@ const fetchWeeklyPayments = async (tokenId: string, weeks: number = 12): Promise
   const response = await fetch(`/api/tokens/${tokenId}/payments`)
   if (!response.ok) {
     throw new Error('Failed to fetch weekly payments')
+  }
+  return response.json()
+}
+
+const fetchTokenHolders = async (tokenId: string): Promise<TokenHolders> => {
+  const response = await fetch(`/api/tokens/${tokenId}/holders`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch token holders')
   }
   return response.json()
 }
@@ -133,6 +154,16 @@ export const useWeeklyPayments = (tokenId: string, weeks: number = 12) => {
   return useQuery({
     queryKey: ['weeklyPayments', tokenId, weeks],
     queryFn: () => fetchWeeklyPayments(tokenId, weeks),
+    enabled: !!tokenId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  })
+}
+
+export const useTokenHolders = (tokenId: string) => {
+  return useQuery({
+    queryKey: ['tokenHolders', tokenId],
+    queryFn: () => fetchTokenHolders(tokenId),
     enabled: !!tokenId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes

@@ -429,4 +429,50 @@ static async getTransactionsInDateRange(
     },
     orderBy: { timestamp: 'asc' }
   });
-}}
+}
+
+// Token Holders methods
+static async upsertTokenHolders(tokenId: string, data: any) {
+  const today = new Date().toISOString().split('T')[0];
+  
+  return await prisma.tokenHolders.upsert({
+    where: {
+      tokenId_date: {
+        tokenId,
+        date: new Date(today)
+      }
+    },
+    update: {
+      totalHolders: data.totalHolders,
+      totalSupply: data.totalSupply,
+      whaleCount: data.distribution.whales,
+      largeCount: data.distribution.large,
+      mediumCount: data.distribution.medium,
+      smallCount: data.distribution.small,
+      holdersData: data.holders
+    },
+    create: {
+      tokenId,
+      date: new Date(today),
+      totalHolders: data.totalHolders,
+      totalSupply: data.totalSupply,
+      whaleCount: data.distribution.whales,
+      largeCount: data.distribution.large,
+      mediumCount: data.distribution.medium,
+      smallCount: data.distribution.small,
+      holdersData: data.holders
+    }
+  });
+}
+
+static async bulkUpsertTokenHolders(tokenId: string, data: any) {
+  return await this.upsertTokenHolders(tokenId, data);
+}
+
+static async getTokenHolders(tokenId: string) {
+  return await prisma.tokenHolders.findFirst({
+    where: { tokenId },
+    orderBy: { date: 'desc' }
+  });
+}
+}
