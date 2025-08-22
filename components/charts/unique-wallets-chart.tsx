@@ -105,13 +105,8 @@ export function UniqueWalletsDisplay({
   }, [filteredData])
 
   // Reduce the scaling of the newWallets axis by multiplying the max by a factor (e.g., 0.5)
-  // This will make the axis "tighter" and the area appear larger relative to the axis
-  // You can adjust the factor as needed (e.g., 0.5 for half, 0.7 for 70%, etc.)
   const newWalletsDomain = React.useMemo(() => {
-    // If max is 0, just use [0, 1] to avoid degenerate axis
     if (newWalletsMax === 0) return [0, 1]
-    // You can tweak the factor below to control the scaling
-    // const factor = 
     console.log(newWalletsMax)
     return [0, Math.max(1, Math.ceil(newWalletsMax ))]
   }, [newWalletsMax])

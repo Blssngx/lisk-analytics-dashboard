@@ -375,16 +375,16 @@ export const useRefreshTokenData = () => {
 
 export const useRefreshCumulativeGrowth = () => {
   const queryClient = useQueryClient()
-  // const COOLDOWN_MS = 0
+  const COOLDOWN_MS = 5 * 60 * 1000
   const lastRunKey = 'cooldown:cumulative-growth'
   
   return useMutation({
     mutationFn: async ({ contractAddress }: { contractAddress: string }) => {
-      // const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
-      // if (Date.now() - lastRun < COOLDOWN_MS) {
-      //   const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
-      //   throw new Error(`Please wait ${remaining}s before running again`)
-      // }
+      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      if (Date.now() - lastRun < COOLDOWN_MS) {
+        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+        throw new Error(`Please wait ${remaining}s before running again`)
+      }
       const response = await fetch(`/api/queries/cumulative-growth`, {
         method: 'POST',
         headers: {
@@ -414,16 +414,16 @@ export const useRefreshCumulativeGrowth = () => {
 
 export const useRefreshUniqueWallets = () => {
   const queryClient = useQueryClient()
-  // const COOLDOWN_MS = 0
+  const COOLDOWN_MS = 5 * 60 * 1000
   const lastRunKey = 'cooldown:unique-wallets'
   
   return useMutation({
     mutationFn: async ({ contractAddress }: { contractAddress: string }) => {
-      // const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
-      // if (Date.now() - lastRun < COOLDOWN_MS) {
-      //   const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
-      //   throw new Error(`Please wait ${remaining}s before running again`)
-      // }
+      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      if (Date.now() - lastRun < COOLDOWN_MS) {
+        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+        throw new Error(`Please wait ${remaining}s before running again`)
+      }
       const response = await fetch(`/api/queries/unique-wallets`, {
         method: 'POST',
         headers: {
@@ -452,16 +452,16 @@ export const useRefreshUniqueWallets = () => {
 
 export const useRefreshWeeklyPayments = () => {
   const queryClient = useQueryClient()
-  // const COOLDOWN_MS = 0
+  const COOLDOWN_MS = 5 * 60 * 1000
   const lastRunKey = 'cooldown:weekly-payments'
   
   return useMutation({
     mutationFn: async ({ contractAddress, methodId }: { contractAddress: string; methodId: string }) => {
-      // const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
-      // if (Date.now() - lastRun < COOLDOWN_MS) {
-      //   const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
-      //   throw new Error(`Please wait ${remaining}s before running again`)
-      // }
+      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      if (Date.now() - lastRun < COOLDOWN_MS) {
+        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+        throw new Error(`Please wait ${remaining}s before running again`)
+      }
       const response = await fetch(`/api/queries/weekly-payments`, {
         method: 'POST',
         headers: {
@@ -490,16 +490,16 @@ export const useRefreshWeeklyPayments = () => {
 
 export const useRefreshTokenHolders = () => {
   const queryClient = useQueryClient()
-  // const COOLDOWN_MS = 0
+  const COOLDOWN_MS = 5 * 60 * 1000
   const lastRunKey = 'cooldown:token-holders'
   
   return useMutation({
     mutationFn: async ({ contractAddress }: { contractAddress: string }) => {
-      // const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
-      // if (Date.now() - lastRun < COOLDOWN_MS) {
-      //   const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
-      //   throw new Error(`Please wait ${remaining}s before running again`)
-      // }
+      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      if (Date.now() - lastRun < COOLDOWN_MS) {
+        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+        throw new Error(`Please wait ${remaining}s before running again`)
+      }
       const response = await fetch(`/api/queries/holders`, {
         method: 'POST',
         headers: {

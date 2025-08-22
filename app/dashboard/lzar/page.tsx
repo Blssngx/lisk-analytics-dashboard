@@ -8,7 +8,7 @@ import { ChartCard } from "@/components/chart-card"
 import { Button } from "@/components/ui/button"
 import { ChartAreaInteractive } from "@/components/charts/cumulative-growth-chart"
 import { WeeklyPaymentsChart } from "@/components/charts/weekly-payments-chart"
-import { UniqueWalletsDisplay } from "@/components/unique-wallets-display"
+import { UniqueWalletsDisplay } from "@/components/charts/unique-wallets-chart"
 import { TokenHoldersPieChart } from "@/components/charts/holders-pie-chart"
 import { PlayCircle, TrendingUp, Copy, Check } from "lucide-react"
 import { useTokenBySymbol, useCumulativeMetrics, useWalletData, useWeeklyPayments, useTokenHolders } from "@/hooks/use-token-data"
@@ -26,10 +26,10 @@ export default function LZARPage() {
   const { data: moralisTokenData, isLoading: moralisTokenLoading, error: moralisTokenError } = useTokenMetadata(LZAR_CONTRACT)
   
   // Only run these queries when we have a valid tokenId
-  const { data: gqlCum } = useCumulativeMetrics(tokenId)
-  const { data: gqlWallets } = useWalletData(tokenId)
-  const { data: gqlWeekly } = useWeeklyPayments(tokenId)
-  const { data: gqlHolders } = useTokenHolders(tokenId)
+  const { data: gqlCum, isLoading: gqlCumLoading, error: gqlCumError } = useCumulativeMetrics(tokenId)
+  const { data: gqlWallets, isLoading: gqlWalletsLoading, error: gqlWalletsError } = useWalletData(tokenId)
+  const { data: gqlWeekly, isLoading: gqlWeeklyLoading, error: gqlWeeklyError } = useWeeklyPayments(tokenId)
+  const { data: gqlHolders, isLoading: gqlHoldersLoading, error: gqlHoldersError } = useTokenHolders(tokenId)
   
   // Moralis fresh data
   const { data: cumulativeGrowthData, isLoading: cumulativeGrowthLoading } = useCumulativeGrowth(LZAR_CONTRACT)

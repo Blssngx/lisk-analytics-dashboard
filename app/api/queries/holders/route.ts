@@ -30,7 +30,7 @@ export async function POST(request: NextRequest){
         // Extract the data from the response
         const holdersData = response.toJSON().result || [];
         
-        // console.log('Raw holders data sample:', holdersData[0]);
+        console.log('Raw holders data sample:', holdersData[0]);
         
         // Process and calculate holders data
         const processedData = TokenHoldersProcessor.processHoldersData(holdersData, token);
