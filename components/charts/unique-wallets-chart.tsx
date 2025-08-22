@@ -107,7 +107,6 @@ export function UniqueWalletsDisplay({
   // Reduce the scaling of the newWallets axis by multiplying the max by a factor (e.g., 0.5)
   const newWalletsDomain = React.useMemo(() => {
     if (newWalletsMax === 0) return [0, 1]
-    console.log(newWalletsMax)
     return [0, Math.max(1, Math.ceil(newWalletsMax ))]
   }, [newWalletsMax])
 

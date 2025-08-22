@@ -13,7 +13,7 @@ export async function GET(
 ) {
   try {
     const { tokenId } = await params
-    console.log(tokenId)
+
     
     // Validate token ID against hardcoded values
     const validTokenIds = Object.values(TOKEN_IDS)

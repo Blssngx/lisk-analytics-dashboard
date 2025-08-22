@@ -40,7 +40,7 @@ const chartConfig = {
 export function ChartAreaInteractive({ data, isLoading, symbol }: { data?: CumulativeGrowthRow[], isLoading?: boolean, symbol: string }) {
   const [timeRange, setTimeRange] = React.useState("all")
   const [activeChart, setActiveChart] = React.useState<"desktop" | "mobile" | "all">("all")
-// console.log(data)
+
   const safeData = Array.isArray(data) ? data : []
 
   // Map API rows to chart points

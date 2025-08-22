@@ -5,7 +5,7 @@ export class TokenHoldersProcessor {
     const holders: TokenHolder[] = [];
     let totalSupply = 0;
 
-    console.log(moralisData[0])
+ 
     // Process each holder using pre-formatted data from Moralis
     moralisData.forEach((holder: any) => {
       try {

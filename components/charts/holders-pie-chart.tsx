@@ -200,19 +200,16 @@ export function TokenHoldersPieChart({
     return { ...stats, total };
   }, [chartData]);
   const bubbleData = React.useMemo(() => {
-    if (!data?.holdersData || !Array.isArray(data.holdersData)) {
-      console.log('No valid holder data available for bubble chart');
-      return []
-    }
+   
     
     try {
-      console.log('Processing holder data:', data.holdersData.length, 'holders');
+     
       
       // Process the raw holder data using TokenHoldersProcessor
       const processedData = TokenHoldersProcessor.processHoldersData(data.holdersData, { decimals: 18 })
       
       if (!processedData || !processedData.holders || processedData.holders.length === 0) {
-        console.log('No processed holders data available');
+    
         return []
       }
       

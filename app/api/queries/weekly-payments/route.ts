@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({} as any))
     const contractAddress: string | undefined = body?.contractAddress
-// console.log(contractAddress)
+
     if (!contractAddress) {
       return NextResponse.json({ error: 'contractAddress is required' }, { status: 400 })
     }
@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
       allTransactions = [...allTransactions, ...(data.result || [])]
       cursor = data.cursor || null
     } while (cursor)
-    // console.log(allTransactions[0])
     const transferTransactions = allTransactions.filter((tx: any) => tx.input && tx.input.startsWith(transferMethodId))
 
     const processedData = await WeeklyPaymentsProcessor.processWeeklyPaymentsFromTransactions(
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest) {
     for (const weeklyData of processedData) {
       await TokenDataService.upsertPaymentData(token.id, weeklyData)
     }
-// console.log("Processed Data", processedData)
+
     return NextResponse.json({
       success: true,
       data: processedData,

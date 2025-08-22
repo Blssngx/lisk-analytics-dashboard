@@ -65,7 +65,6 @@ export class WeeklyPaymentsProcessor {
         }
       }
     });
-// console.log("Weekly Data", weeklyData )
     return Array.from(weeklyData.values()).map(week => ({
       weekStartDate: week.weekStartDate,
       totalPaymentsAmount: week.totalPaymentsAmount,
