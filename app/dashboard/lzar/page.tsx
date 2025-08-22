@@ -12,7 +12,7 @@ import { UniqueWalletsDisplay } from "@/components/unique-wallets-display"
 import { TokenHoldersPieChart } from "@/components/charts/holders-pie-chart"
 import { PlayCircle, TrendingUp, Copy, Check } from "lucide-react"
 import { useTokenBySymbol, useCumulativeMetrics, useWalletData, useWeeklyPayments, useTokenHolders } from "@/hooks/use-token-data"
-import { useCumulativeGrowth, useUniqueWallets, useWeeklyPayments as useMoralisWeeklyPayments, useRefreshCumulativeGrowth, useRefreshUniqueWallets, useRefreshWeeklyPayments, useRefreshTokenHolders, useMoralisTokenHolders } from "@/hooks/use-moralis-queries"
+import { useCumulativeGrowth, useUniqueWallets, useWeeklyPayments as useMoralisWeeklyPayments, useRefreshCumulativeGrowth, useRefreshUniqueWallets, useRefreshWeeklyPayments, useRefreshTokenHolders, useMoralisTokenHolders, useTokenMetadata } from "@/hooks/use-moralis-queries"
 
 export default function LZARPage() {
   const LZAR_CONTRACT = '0x7b7047c49eaf68b8514a20624773ca620e2cd4a3'
@@ -22,11 +22,14 @@ export default function LZARPage() {
   const { data: tokenData, isLoading: tokenLoading, error: tokenError } = useTokenBySymbol('LZAR')
   const tokenId = tokenData?.id || ''
   
+  // Moralis real-time token metadata
+  const { data: moralisTokenData, isLoading: moralisTokenLoading, error: moralisTokenError } = useTokenMetadata(LZAR_CONTRACT)
+  
   // Only run these queries when we have a valid tokenId
-  const { data: gqlCum, isLoading: gqlCumLoading, error: gqlCumError } = useCumulativeMetrics(tokenId)
-  const { data: gqlWallets, isLoading: gqlWalletsLoading, error: gqlWalletsError } = useWalletData(tokenId)
-  const { data: gqlWeekly, isLoading: gqlWeeklyLoading, error: gqlWeeklyError } = useWeeklyPayments(tokenId)
-  const { data: gqlHolders, isLoading: gqlHoldersLoading, error: gqlHoldersError } = useTokenHolders(tokenId)
+  const { data: gqlCum } = useCumulativeMetrics(tokenId)
+  const { data: gqlWallets } = useWalletData(tokenId)
+  const { data: gqlWeekly } = useWeeklyPayments(tokenId)
+  const { data: gqlHolders } = useTokenHolders(tokenId)
   
   // Moralis fresh data
   const { data: cumulativeGrowthData, isLoading: cumulativeGrowthLoading } = useCumulativeGrowth(LZAR_CONTRACT)
@@ -47,17 +50,6 @@ export default function LZARPage() {
     tokenHolders: false,
     allQueries: false,
   })
-
-  // Test function to manually trigger REST API query
-  // const testRestAPI = async () => {
-  //   try {
-  //     const response = await fetch('/api/symbol/LZAR')
-  //     const result = await response.json()
-  //     console.log('Manual REST API test result:', result)
-  //   } catch (error) {
-  //     console.error('Manual REST API test error:', error)
-  //   }
-  // }
 
   const runQuery = async (queryType: keyof typeof loadingStates) => {
     setLoadingStates((prev) => ({ ...prev, [queryType]: true }))
@@ -104,7 +96,7 @@ export default function LZARPage() {
     } catch {}
   }
 
-  // Build fallbacks from REST API data
+  // Build fallbacks from REST API data (only used if Moralis data is not available)
   const cumFallback = (gqlCum || []).map(m => ({
     date: m.date,
     cumulativeTxCount: Number(m.cumulativeTxCount),
@@ -126,31 +118,22 @@ export default function LZARPage() {
   }))
   const holdersFallback = gqlHolders
 
-  const cumulativeDisplay = (Array.isArray(cumulativeGrowthData) && cumulativeGrowthData.length > 0) ? cumulativeGrowthData : cumFallback
-  const walletsDisplay = (Array.isArray(uniqueWalletsData) && uniqueWalletsData.length > 0) ? uniqueWalletsData : walletsFallback
-  const weeklyDisplay = (Array.isArray(weeklyPaymentsData) && weeklyPaymentsData.length > 0) ? weeklyPaymentsData : weeklyFallback
-  const holdersDisplay = (Array.isArray(tokenHoldersData) && tokenHoldersData.length > 0) ? tokenHoldersData : holdersFallback
-  // Debug logging
-  // useEffect(() => {
-  //   console.log('LZAR Page Debug Info:', {
-  //     tokenData,
-  //     tokenId,
-  //     tokenLoading,
-  //     tokenError,
-  //     gqlCum,
-  //     gqlWallets,
-  //     gqlWeekly,
-  //     gqlCumError,
-  //     gqlWalletsError,
-  //     gqlWeeklyError,
-  //     cumulativeDisplay,
-  //     walletsDisplay,
-  //     weeklyDisplay
-  //   })
-  // }, [tokenData, tokenId, tokenLoading, tokenError, gqlCum, gqlWallets, gqlWeekly, gqlCumError, gqlWalletsError, gqlWeeklyError, cumulativeDisplay, walletsDisplay, weeklyDisplay])
+  // Prioritize Moralis data - always use fresh blockchain data when available
+  const cumulativeDisplay = Array.isArray(cumulativeGrowthData) && cumulativeGrowthData.length > 0 
+    ? cumulativeGrowthData 
+    : cumFallback
+  const walletsDisplay = Array.isArray(uniqueWalletsData) && uniqueWalletsData.length > 0 
+    ? uniqueWalletsData 
+    : walletsFallback
+  const weeklyDisplay = Array.isArray(weeklyPaymentsData) && weeklyPaymentsData.length > 0 
+    ? weeklyPaymentsData 
+    : weeklyFallback
+  const holdersDisplay = Array.isArray(tokenHoldersData) && tokenHoldersData.length > 0 
+    ? tokenHoldersData 
+    : holdersFallback
 
   const currentTotalWallets = walletsDisplay.length > 0 ? walletsDisplay[walletsDisplay.length-1].uniqueWalletCount : 0
-
+// console.log(moralisTokenData)
   return (
     <AuthGuard>
       <DashboardLayout>
@@ -174,34 +157,43 @@ export default function LZARPage() {
               </div>
             </div>
           </div>
-
-          {/* Debug Info */}
-          {/* {process.env.NODE_ENV === 'development' && (
-            <div className="bg-gray-800 p-4 rounded-lg text-sm">
-              <h3 className="text-white font-semibold mb-2">Debug Info:</h3>
-              <div className="text-gray-300 space-y-1">
-                <div>Token ID: {tokenId || 'Not found'}</div>
-                <div>Token Loading: {tokenLoading ? 'Yes' : 'No'}</div>
-                <div>Token Error: {tokenError ? 'Yes' : 'No'}</div>
-                <div>Cumulative Data: {gqlCum?.length || 0} records</div>
-                <div>Wallet Data: {gqlWallets?.length || 0} records</div>
-                <div>Weekly Data: {gqlWeekly?.length || 0} records</div>
-                <div>Final Cumulative Display: {cumulativeDisplay.length} records</div>
-                <div>Final Wallets Display: {walletsDisplay.length} records</div>
-                <div>Final Weekly Display: {weeklyDisplay.length} records</div>
-                {tokenError && <div className="text-red-400">Token Error: {tokenError.message}</div>}
-                {gqlCumError && <div className="text-red-400">Cumulative Error: {gqlCumError.message}</div>}
-                {gqlWalletsError && <div className="text-red-400">Wallets Error: {gqlWalletsError.message}</div>}
-                {gqlWeeklyError && <div className="text-red-400">Weekly Error: {gqlWeeklyError.message}</div>}
-              </div>
-            </div>
-          )} */}
-
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <MetricCard title="Total Supply" value={tokenLoading ? "Loading..." : `${Number(tokenData?.totalSupplyFormatted).toLocaleString() || 'N/A'} LZAR`} subtitle={tokenError ? "Error loading data" : "Fixed supply"} />
-            <MetricCard title="Contract Address" value={tokenLoading ? "Loading..." : `${tokenData?.contractAddress?.slice(0,8)}...${tokenData?.contractAddress?.slice(-6)}`} subtitle={tokenError ? "Error loading data" : "Token Contract address"}>
-              <Button onClick={() => copyToClipboard(tokenData?.contractAddress || '')} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+            <MetricCard 
+              title="Total Supply" 
+              value={
+                moralisTokenLoading 
+                  ? "Loading..." 
+                  : moralisTokenError 
+                  ? "Error loading data"
+                  : `${Number(moralisTokenData?.total_supply_formatted || 0).toLocaleString()} LZAR`
+              } 
+              subtitle={
+                moralisTokenError 
+                  ? "Error loading data" 
+                  : moralisTokenLoading 
+                  ? "Fetching from blockchain..."
+                  : "Live from blockchain"
+              } 
+            />
+            <MetricCard 
+              title="Contract Address" 
+              value={
+                moralisTokenLoading 
+                  ? "Loading..." 
+                  : moralisTokenError 
+                  ? "Error loading data"
+                  : `${LZAR_CONTRACT.slice(0,8)}...${LZAR_CONTRACT.slice(-6)}`
+              } 
+              subtitle={
+                moralisTokenError 
+                  ? "Error loading data" 
+                  : moralisTokenLoading 
+                  ? "Fetching from blockchain..."
+                  : "Token Contract address"
+              }
+            >
+              <Button onClick={() => copyToClipboard(LZAR_CONTRACT)} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </MetricCard>

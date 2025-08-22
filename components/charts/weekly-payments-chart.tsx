@@ -480,11 +480,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
           </div>
         )}
         
-        {(activeChart === "amounts" || activeChart === "average") && (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Note: amounts are displayed in a{symbol} (atto{symbol}, 1e-18 of a {symbol}).
-          </p>
-        )}
+       
       </div>
     </>
   )

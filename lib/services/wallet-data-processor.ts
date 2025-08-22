@@ -45,8 +45,8 @@ export class WalletDataProcessor {
     dailyWallets.forEach((wallets, date) => {
       wallets.forEach(wallet => allAddresses.add(wallet));
     });
-    console.log(`Total unique wallet addresses found: ${allAddresses.size}`);
-    console.log(`Sample addresses: ${Array.from(allAddresses).slice(0, 5).join(', ')}`);
+    // console.log(`Total unique wallet addresses found: ${allAddresses.size}`);
+    // console.log(`Sample addresses: ${Array.from(allAddresses).slice(0, 5).join(', ')}`);
 
     for (const date of sortedDates) {
       const dailyWalletsSet = dailyWallets.get(date)!;

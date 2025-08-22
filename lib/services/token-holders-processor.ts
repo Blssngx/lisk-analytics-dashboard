@@ -22,12 +22,12 @@ export class TokenHoldersProcessor {
     const holders: TokenHolder[] = [];
     let totalSupply = 0;
 
-    console.log(moralisData[0])
+    // console.log(moralisData[0])
     // Process each holder using pre-formatted data from Moralis
     moralisData.forEach((holder: any) => {
       try {
         if (!holder.balance_formatted || !holder.owner_address) {
-          console.warn('Skipping holder with missing data:', holder);
+          // console.warn('Skipping holder with missing data:', holder);
           return;
         }
 
@@ -36,7 +36,7 @@ export class TokenHoldersProcessor {
         
         // Skip if balance conversion failed
         if (isNaN(balance)) {
-          console.warn('Skipping holder with invalid balance:', holder);
+          // console.warn('Skipping holder with invalid balance:', holder);
           return;
         }
 

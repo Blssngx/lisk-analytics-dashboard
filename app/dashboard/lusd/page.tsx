@@ -12,15 +12,18 @@ import { UniqueWalletsDisplay } from "@/components/unique-wallets-display"
 import { TokenHoldersPieChart } from "@/components/charts/holders-pie-chart"
 import { PlayCircle, TrendingUp, Copy, Check } from "lucide-react"
 import { useTokenBySymbol, useCumulativeMetrics, useWalletData, useWeeklyPayments, useTokenHolders } from "@/hooks/use-token-data"
-import { useCumulativeGrowth, useUniqueWallets, useWeeklyPayments as useMoralisWeeklyPayments, useRefreshCumulativeGrowth, useRefreshUniqueWallets, useRefreshWeeklyPayments, useRefreshTokenHolders } from "@/hooks/use-moralis-queries"
+import { useCumulativeGrowth, useUniqueWallets, useWeeklyPayments as useMoralisWeeklyPayments, useRefreshCumulativeGrowth, useRefreshUniqueWallets, useRefreshWeeklyPayments, useRefreshTokenHolders, useTokenMetadata, useMoralisTokenHolders } from "@/hooks/use-moralis-queries"
 
 export default function LUSDPage() {
-  const LUSD_CONTRACT = '0x7b7047c49eaf68b8514a20624773ca620e2cd4a3'
+  const LUSD_CONTRACT = '0x2A0FA5d670DEb472c1a72977b75Ba53D1E6FAB72'
   const METHOD_ID = '0xa9059cbb'
 
   // REST API cached data
   const { data: tokenData, isLoading: tokenLoading, error: tokenError } = useTokenBySymbol('LUSD')
   const tokenId = tokenData?.id || ''
+  
+  // Moralis real-time token metadata
+  const { data: moralisTokenData, isLoading: moralisTokenLoading, error: moralisTokenError } = useTokenMetadata(LUSD_CONTRACT)
   
   // Only run these queries when we have a valid tokenId
   const { data: gqlCum, isLoading: gqlCumLoading, error: gqlCumError } = useCumulativeMetrics(tokenId)
@@ -32,6 +35,7 @@ export default function LUSDPage() {
   const { data: cumulativeGrowthData, isLoading: cumulativeGrowthLoading } = useCumulativeGrowth(LUSD_CONTRACT)
   const { data: uniqueWalletsData, isLoading: uniqueWalletsLoading } = useUniqueWallets(LUSD_CONTRACT)
   const { data: weeklyPaymentsData, isLoading: weeklyPaymentsLoading } = useMoralisWeeklyPayments(LUSD_CONTRACT, METHOD_ID)
+  const { data: tokenHoldersData, isLoading: tokenHoldersLoading } = useMoralisTokenHolders(LUSD_CONTRACT, METHOD_ID)
 
   // Mutations
   const refreshCumulativeGrowth = useRefreshCumulativeGrowth()
@@ -103,7 +107,7 @@ export default function LUSDPage() {
     } catch {}
   }
 
-  // Build fallbacks from REST API data
+  // Build fallbacks from REST API data (only used if Moralis data is not available)
   const cumFallback = (gqlCum || []).map(m => ({
     date: m.date,
     cumulativeTxCount: Number(m.cumulativeTxCount),
@@ -123,11 +127,21 @@ export default function LUSDPage() {
     paymentCount: Number(w.paymentCount),
     averagePayment: Number(w.averagePayment)
   }))
+  const holdersFallback = gqlHolders
 
-  const cumulativeDisplay = (Array.isArray(cumulativeGrowthData) && cumulativeGrowthData.length > 0) ? cumulativeGrowthData : cumFallback
-  const walletsDisplay = (Array.isArray(uniqueWalletsData) && uniqueWalletsData.length > 0) ? uniqueWalletsData : walletsFallback
-  const weeklyDisplay = (Array.isArray(weeklyPaymentsData) && weeklyPaymentsData.length > 0) ? weeklyPaymentsData : weeklyFallback
-  const holdersDisplay = gqlHolders || null
+  // Prioritize Moralis data - always use fresh blockchain data when available
+  const cumulativeDisplay = Array.isArray(cumulativeGrowthData) && cumulativeGrowthData.length > 0 
+    ? cumulativeGrowthData 
+    : cumFallback
+  const walletsDisplay = Array.isArray(uniqueWalletsData) && uniqueWalletsData.length > 0 
+    ? uniqueWalletsData 
+    : walletsFallback
+  const weeklyDisplay = Array.isArray(weeklyPaymentsData) && weeklyPaymentsData.length > 0 
+    ? weeklyPaymentsData 
+    : weeklyFallback
+  const holdersDisplay = Array.isArray(tokenHoldersData) && tokenHoldersData.length > 0 
+    ? tokenHoldersData 
+    : holdersFallback
 
   // Debug logging
   // useEffect(() => {
@@ -198,9 +212,41 @@ export default function LUSDPage() {
 
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <MetricCard title="Total Supply" value={tokenLoading ? "Loading..." : `${Number(tokenData?.totalSupplyFormatted).toLocaleString() || 'N/A'} LUSD`} subtitle={tokenError ? "Error loading data" : "Fixed supply"} />
-            <MetricCard title="Contract Address" value={tokenLoading ? "Loading..." : `${tokenData?.contractAddress?.slice(0,8)}...${tokenData?.contractAddress?.slice(-6)}`} subtitle={tokenError ? "Error loading data" : "Token Contract address"}>
-              <Button onClick={() => copyToClipboard(tokenData?.contractAddress || '')} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+            <MetricCard 
+              title="Total Supply" 
+              value={
+                moralisTokenLoading 
+                  ? "Loading..." 
+                  : moralisTokenError 
+                  ? "Error loading data"
+                  : `${Number(moralisTokenData?.total_supply_formatted || 0).toLocaleString()} LUSD`
+              } 
+              subtitle={
+                moralisTokenError 
+                  ? "Error loading data" 
+                  : moralisTokenLoading 
+                  ? "Fetching from blockchain..."
+                  : "Live from blockchain"
+              } 
+            />
+            <MetricCard 
+              title="Contract Address" 
+              value={
+                moralisTokenLoading 
+                  ? "Loading..." 
+                  : moralisTokenError 
+                  ? "Error loading data"
+                  : `${LUSD_CONTRACT.slice(0,8)}...${LUSD_CONTRACT.slice(-6)}`
+              } 
+              subtitle={
+                moralisTokenError 
+                  ? "Error loading data" 
+                  : moralisTokenLoading 
+                  ? "Fetching from blockchain..."
+                  : "Token Contract address"
+              }
+            >
+              <Button onClick={() => copyToClipboard(LUSD_CONTRACT)} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </MetricCard>
@@ -220,8 +266,8 @@ export default function LUSDPage() {
                   <WeeklyPaymentsChart data={weeklyDisplay} symbol="LUSD"/>
                 </ChartCard>
                 
-                <ChartCard title="Token Holders Distribution" description="Distribution of token holders by balance size categories." isLoading={loadingStates.tokenHolders} onRunQuery={() => runQuery("tokenHolders")} cooldownKey="cooldown:token-holders">
-                  <TokenHoldersPieChart data={holdersDisplay} symbol="LUSD" isLoading={gqlHoldersLoading} />
+                <ChartCard title="Token Holders Distribution" description="Distribution of token holders by balance size categories." isLoading={loadingStates.tokenHolders || tokenHoldersLoading} onRunQuery={() => runQuery("tokenHolders")} cooldownKey="cooldown:token-holders">
+                  <TokenHoldersPieChart data={holdersDisplay} symbol="LUSD" isLoading={tokenHoldersLoading} />
                 </ChartCard>
            
           </div>

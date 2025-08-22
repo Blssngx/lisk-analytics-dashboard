@@ -200,13 +200,13 @@ export function TokenHoldersPieChart({
     return { ...stats, total };
   }, [chartData]);
   const bubbleData = React.useMemo(() => {
-    if (!data?.holdersData || !Array.isArray(data.holdersData)) {
-      console.log('No valid holder data available for bubble chart');
-      return []
-    }
+    // if (!data?.holdersData || !Array.isArray(data.holdersData)) {
+    //   console.log('No valid holder data available for bubble chart');
+    //   return []
+    // }
     
     try {
-      console.log('Processing holder data:', data.holdersData.length, 'holders');
+    //   console.log('Processing holder data:', data.holdersData.length, 'holders');
       
       // Process the raw holder data using TokenHoldersProcessor
       const processedData = TokenHoldersProcessor.processHoldersData(data.holdersData, { decimals: 18 })
@@ -249,7 +249,7 @@ export function TokenHoldersPieChart({
           <CardDescription>Loading...</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
-          <div className="mx-auto aspect-square max-h-[250px] flex items-center justify-center">
+          <div className="mx-auto aspect-square max-h-[500px] flex items-center justify-center">
             <div className="text-muted-foreground">Loading chart data...</div>
           </div>
         </CardContent>
@@ -258,13 +258,13 @@ export function TokenHoldersPieChart({
   }
 
   if (!data || chartData.length === 0) {
-    return (
-      <Card className="flex flex-col">
-        <CardHeader className="items-center pb-0">
+  return (
+    <Card className="flex flex-col">
+      <CardHeader className="items-center pb-0">
           <CardTitle>Token Holders Analysis</CardTitle>
           <CardDescription>No data available</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1 pb-0">
+      </CardHeader>
+      <CardContent className="flex-1 pb-0">
           <div className="mx-auto aspect-square max-h-[250px] flex items-center justify-center">
             <div className="text-muted-foreground">No holders data available</div>
           </div>
@@ -305,55 +305,55 @@ export function TokenHoldersPieChart({
 
         <div className="flex-1 pb-0">
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 h-[75vh] sm:h-[50vh]">
-             <ChartContainer
-               config={chartConfig}
+        <ChartContainer
+          config={chartConfig}
                className="mx-auto aspect-square w-full max-w-[500px] lg:h-auto"
-             >
-               <PieChart>
-                 <ChartTooltip
-                   cursor={false}
+        >
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
                    content={(props) => <CustomPieTooltip {...props} />}
-                 />
-                 <Pie
-                   data={chartData}
+            />
+            <Pie
+              data={chartData}
                    dataKey="count"
                    nameKey="category"
                    innerRadius={100}
                    strokeWidth={3}
-                 >
-                   <Label
-                     content={({ viewBox }) => {
-                       if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                         return (
-                           <text
-                             x={viewBox.cx}
-                             y={viewBox.cy}
-                             textAnchor="middle"
-                             dominantBaseline="middle"
-                           >
-                             <tspan
-                               x={viewBox.cx}
-                               y={viewBox.cy}
+            >
+              <Label
+                content={({ viewBox }) => {
+                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                    return (
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                      >
+                        <tspan
+                          x={viewBox.cx}
+                          y={viewBox.cy}
                                className="fill-foreground text-2xl lg:text-4xl font-bold"
-                             >
+                        >
                                {totalHolders.toLocaleString()}
-                             </tspan>
-                             <tspan
-                               x={viewBox.cx}
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
                                y={(viewBox.cy || 0) + 20}
                                className="fill-muted-foreground text-sm lg:text-lg"
-                             >
+                        >
                                Holders
-                             </tspan>
-                           </text>
-                         )
-                       }
-                     }}
-                   />
-                 </Pie>
-               </PieChart>
+                        </tspan>
+                      </text>
+                    )
+                  }
+                }}
+              />
+            </Pie>
+          </PieChart>
 
-             </ChartContainer>     
+        </ChartContainer>
              
                   <BubbleChart data={bubbleData} symbol={symbol} />
                </div>
@@ -362,11 +362,11 @@ export function TokenHoldersPieChart({
        <CardFooter className="flex-col gap-2 text-xs lg:text-sm px-4 lg:px-6">
          <div className="flex items-center gap-2 leading-none font-medium text-center">
            Total Supply: {data.totalSupply ? Number(data.totalSupply).toLocaleString() : 'N/A'} {symbol}
-         </div>
+        </div>
          <div className="text-muted-foreground leading-none text-center">
            Distribution of wallet holders by groups (left) and by individual wallet balance (right)
-         </div>
-       </CardFooter>
-     </Card>
-   )
+        </div>
+      </CardFooter>
+    </Card>
+  )
 }

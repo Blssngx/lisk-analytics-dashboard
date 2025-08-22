@@ -237,7 +237,7 @@ const fetchTokenHolders = async (contractAddress: string, methodId: string): Pro
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ contractAddress, methodId }),
+    body: JSON.stringify({ contractAddress }), // Only send contractAddress, methodId not needed
   })
   
   if (!response.ok) {
@@ -284,10 +284,9 @@ export const useCumulativeGrowth = (contractAddress: string) => {
   return useQuery({
     queryKey: ['moralis', 'cumulative-growth', contractAddress],
     queryFn: () => fetchCumulativeGrowth(contractAddress),
-    // Do NOT auto-fetch on page load. Only run via refresh mutation if explicitly requested.
-    enabled: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!contractAddress,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 
@@ -295,9 +294,9 @@ export const useUniqueWallets = (contractAddress: string) => {
   return useQuery({
     queryKey: ['moralis', 'unique-wallets', contractAddress],
     queryFn: () => fetchUniqueWallets(contractAddress),
-    enabled: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!contractAddress,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 
@@ -305,18 +304,44 @@ export const useWeeklyPayments = (contractAddress: string, methodId: string) => 
   return useQuery({
     queryKey: ['moralis', 'weekly-payments', contractAddress, methodId],
     queryFn: () => fetchWeeklyPayments(contractAddress, methodId),
-    enabled: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!contractAddress && !!methodId,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 export const useMoralisTokenHolders = (contractAddress: string, methodId: string) => {
   return useQuery({
     queryKey: ['moralis', 'token-holders', contractAddress, methodId],
     queryFn: () => fetchTokenHolders(contractAddress, methodId),
-    enabled: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!contractAddress && !!methodId,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
+
+// New hook for fetching token metadata from Moralis
+export const useTokenMetadata = (contractAddress: string) => {
+  return useQuery({
+    queryKey: ['tokenMetadata', contractAddress],
+    queryFn: async (): Promise<MoralisTokenData> => {
+      const response = await fetch('/api/moralis/token-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ contractAddress }),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch token metadata')
+      }
+      
+      const res = await response.json()
+      return res.data
+    },
+    enabled: !!contractAddress,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 
@@ -350,16 +375,16 @@ export const useRefreshTokenData = () => {
 
 export const useRefreshCumulativeGrowth = () => {
   const queryClient = useQueryClient()
-  const COOLDOWN_MS = 5 * 60 * 1000
+  // const COOLDOWN_MS = 0
   const lastRunKey = 'cooldown:cumulative-growth'
   
   return useMutation({
     mutationFn: async ({ contractAddress }: { contractAddress: string }) => {
-      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
-      if (Date.now() - lastRun < COOLDOWN_MS) {
-        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
-        throw new Error(`Please wait ${remaining}s before running again`)
-      }
+      // const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      // if (Date.now() - lastRun < COOLDOWN_MS) {
+      //   const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+      //   throw new Error(`Please wait ${remaining}s before running again`)
+      // }
       const response = await fetch(`/api/queries/cumulative-growth`, {
         method: 'POST',
         headers: {
@@ -389,16 +414,16 @@ export const useRefreshCumulativeGrowth = () => {
 
 export const useRefreshUniqueWallets = () => {
   const queryClient = useQueryClient()
-  const COOLDOWN_MS = 5 * 60 * 1000
+  // const COOLDOWN_MS = 0
   const lastRunKey = 'cooldown:unique-wallets'
   
   return useMutation({
     mutationFn: async ({ contractAddress }: { contractAddress: string }) => {
-      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
-      if (Date.now() - lastRun < COOLDOWN_MS) {
-        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
-        throw new Error(`Please wait ${remaining}s before running again`)
-      }
+      // const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      // if (Date.now() - lastRun < COOLDOWN_MS) {
+      //   const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+      //   throw new Error(`Please wait ${remaining}s before running again`)
+      // }
       const response = await fetch(`/api/queries/unique-wallets`, {
         method: 'POST',
         headers: {
@@ -427,16 +452,16 @@ export const useRefreshUniqueWallets = () => {
 
 export const useRefreshWeeklyPayments = () => {
   const queryClient = useQueryClient()
-  const COOLDOWN_MS = 5 * 60 * 1000
+  // const COOLDOWN_MS = 0
   const lastRunKey = 'cooldown:weekly-payments'
   
   return useMutation({
     mutationFn: async ({ contractAddress, methodId }: { contractAddress: string; methodId: string }) => {
-      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
-      if (Date.now() - lastRun < COOLDOWN_MS) {
-        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
-        throw new Error(`Please wait ${remaining}s before running again`)
-      }
+      // const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      // if (Date.now() - lastRun < COOLDOWN_MS) {
+      //   const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+      //   throw new Error(`Please wait ${remaining}s before running again`)
+      // }
       const response = await fetch(`/api/queries/weekly-payments`, {
         method: 'POST',
         headers: {
@@ -465,16 +490,16 @@ export const useRefreshWeeklyPayments = () => {
 
 export const useRefreshTokenHolders = () => {
   const queryClient = useQueryClient()
-  const COOLDOWN_MS = 5 * 60 * 1000
+  // const COOLDOWN_MS = 0
   const lastRunKey = 'cooldown:token-holders'
   
   return useMutation({
     mutationFn: async ({ contractAddress }: { contractAddress: string }) => {
-      const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
-      if (Date.now() - lastRun < COOLDOWN_MS) {
-        const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
-        throw new Error(`Please wait ${remaining}s before running again`)
-      }
+      // const lastRun = Number(localStorage.getItem(lastRunKey) || 0)
+      // if (Date.now() - lastRun < COOLDOWN_MS) {
+      //   const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastRun)) / 1000)
+      //   throw new Error(`Please wait ${remaining}s before running again`)
+      // }
       const response = await fetch(`/api/queries/holders`, {
         method: 'POST',
         headers: {

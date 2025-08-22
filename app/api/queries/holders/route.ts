@@ -13,7 +13,7 @@ export async function POST(request: NextRequest){
             return NextResponse.json({ error: 'contractAddress is required' }, { status: 400 })
         }
 
-        const token = await TokenDataService.getTokenByContractAddress(contractAddress)
+        const token = await TokenDataService.getTokenByContractAddress(contractAddress.toLowerCase())
         if (!token) {
             return NextResponse.json({ error: 'Token not found for contractAddress' }, { status: 404 })
         }
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest){
         // Extract the data from the response
         const holdersData = response.toJSON().result || [];
         
-        console.log('Raw holders data sample:', holdersData[0]);
+        // console.log('Raw holders data sample:', holdersData[0]);
         
         // Process and calculate holders data
         const processedData = TokenHoldersProcessor.processHoldersData(holdersData, token);
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest){
 
         return NextResponse.json({
             success: true,
-            data: processedData,
+            data: dataToStore, // Return the full dataToStore object which includes both processed and raw data
             message: 'Token holders data updated'
         })
     }catch(error)
