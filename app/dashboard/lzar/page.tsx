@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { AuthGuard } from "@/components/auth-guard"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { MetricCard } from "@/components/metric-card"
@@ -35,7 +35,7 @@ export default function LZARPage() {
   const { data: cumulativeGrowthData, isLoading: cumulativeGrowthLoading } = useCumulativeGrowth(LZAR_CONTRACT)
   const { data: uniqueWalletsData, isLoading: uniqueWalletsLoading } = useUniqueWallets(LZAR_CONTRACT)
   const { data: weeklyPaymentsData, isLoading: weeklyPaymentsLoading } = useMoralisWeeklyPayments(LZAR_CONTRACT, METHOD_ID)
-  const {data: tokenHoldersData, isLoading: tokenHoldersLoading} = useMoralisTokenHolders(LZAR_CONTRACT, METHOD_ID)
+  const {data: tokenHoldersData, isLoading: tokenHoldersLoading} = useMoralisTokenHolders(LZAR_CONTRACT)
 
   // Mutations
   const refreshCumulativeGrowth = useRefreshCumulativeGrowth()
@@ -133,7 +133,7 @@ export default function LZARPage() {
     : holdersFallback
 
   const currentTotalWallets = walletsDisplay.length > 0 ? walletsDisplay[walletsDisplay.length-1].uniqueWalletCount : 0
-// console.log(moralisTokenData)
+
   return (
     <AuthGuard>
       <DashboardLayout>
@@ -202,7 +202,7 @@ export default function LZARPage() {
           {/* Charts */}
           <div className="space-y-6">
             <ChartCard title="Cumulative Growth" description="Cumulative transaction count and total volume for LZAR over time." isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} onRunQuery={() => runQuery("cumulativeGrowth")} cooldownKey="cooldown:cumulative-growth">
-              {/* <CumulativeGrowthChart data={cumulativeDisplay} /> */}
+             
               <ChartAreaInteractive data={cumulativeDisplay} isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} symbol="LZAR"/>
             </ChartCard>
             <ChartCard title="Unique Wallets" description="Unique wallets and new wallets over time for LZAR." isLoading={loadingStates.uniqueWallets || uniqueWalletsLoading} onRunQuery={() => runQuery("uniqueWallets")} cooldownKey="cooldown:unique-wallets">

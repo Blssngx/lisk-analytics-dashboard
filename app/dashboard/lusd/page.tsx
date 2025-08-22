@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { AuthGuard } from "@/components/auth-guard"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { MetricCard } from "@/components/metric-card"
@@ -35,7 +35,7 @@ export default function LUSDPage() {
   const { data: cumulativeGrowthData, isLoading: cumulativeGrowthLoading } = useCumulativeGrowth(LUSD_CONTRACT)
   const { data: uniqueWalletsData, isLoading: uniqueWalletsLoading } = useUniqueWallets(LUSD_CONTRACT)
   const { data: weeklyPaymentsData, isLoading: weeklyPaymentsLoading } = useMoralisWeeklyPayments(LUSD_CONTRACT, METHOD_ID)
-  const { data: tokenHoldersData, isLoading: tokenHoldersLoading } = useMoralisTokenHolders(LUSD_CONTRACT, METHOD_ID)
+  const { data: tokenHoldersData, isLoading: tokenHoldersLoading } = useMoralisTokenHolders(LUSD_CONTRACT)
 
   // Mutations
   const refreshCumulativeGrowth = useRefreshCumulativeGrowth()
@@ -51,16 +51,6 @@ export default function LUSDPage() {
     allQueries: false,
   })
 
-  // Test function to manually trigger REST API query
-  // const testRestAPI = async () => {
-  //   try {
-  //     const response = await fetch('/api/symbol/LUSD')
-  //     const result = await response.json()
-  //     console.log('Manual REST API test result:', result)
-  //   } catch (error) {
-  //     console.error('Manual REST API test error:', error)
-  //   }
-  // }
 
   const runQuery = async (queryType: keyof typeof loadingStates) => {
     setLoadingStates((prev) => ({ ...prev, [queryType]: true }))
@@ -142,26 +132,6 @@ export default function LUSDPage() {
   const holdersDisplay = Array.isArray(tokenHoldersData) && tokenHoldersData.length > 0 
     ? tokenHoldersData 
     : holdersFallback
-
-  // Debug logging
-  // useEffect(() => {
-  //   console.log('LUSD Page Debug Info:', {
-  //     tokenData,
-  //     tokenId,
-  //     tokenLoading,
-  //     tokenError,
-  //     gqlCum,
-  //     gqlWallets,
-  //     gqlWeekly,
-  //     gqlCumError,
-  //     gqlWalletsError,
-  //     gqlWeeklyError,
-  //     cumulativeDisplay,
-  //     walletsDisplay,
-  //     weeklyDisplay
-  //   })
-  // }, [tokenData, tokenId, tokenLoading, tokenError, gqlCum, gqlWallets, gqlWeekly, gqlCumError, gqlWalletsError, gqlWeeklyError, cumulativeDisplay, walletsDisplay, weeklyDisplay])
-
   const currentTotalWallets = walletsDisplay.length > 0 ? walletsDisplay[walletsDisplay.length-1].uniqueWalletCount : 0
 
   return (
@@ -187,28 +157,6 @@ export default function LUSDPage() {
               </div>
             </div>
           </div>
-
-          {/* Debug Info */}
-          {/* {process.env.NODE_ENV === 'development' && (
-            <div className="bg-gray-800 p-4 rounded-lg text-sm">
-              <h3 className="text-white font-semibold mb-2">Debug Info:</h3>
-              <div className="text-gray-300 space-y-1">
-                <div>Token ID: {tokenId || 'Not found'}</div>
-                <div>Token Loading: {tokenLoading ? 'Yes' : 'No'}</div>
-                <div>Token Error: {tokenError ? 'Yes' : 'No'}</div>
-                <div>Cumulative Data: {gqlCum?.length || 0} records</div>
-                <div>Wallet Data: {gqlWallets?.length || 0} records</div>
-                <div>Weekly Data: {gqlWeekly?.length || 0} records</div>
-                <div>Final Cumulative Display: {cumulativeDisplay.length} records</div>
-                <div>Final Wallets Display: {walletsDisplay.length} records</div>
-                <div>Final Weekly Display: {weeklyDisplay.length} records</div>
-                {tokenError && <div className="text-red-400">Token Error: {tokenError.message}</div>}
-                {gqlCumError && <div className="text-red-400">Cumulative Error: {gqlCumError.message}</div>}
-                {gqlWalletsError && <div className="text-red-400">Wallets Error: {gqlWalletsError.message}</div>}
-                {gqlWeeklyError && <div className="text-red-400">Weekly Error: {gqlWeeklyError.message}</div>}
-              </div>
-            </div>
-          )} */}
 
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -255,7 +203,7 @@ export default function LUSDPage() {
           {/* Charts */}
           <div className="space-y-6">
             <ChartCard title="Cumulative Growth" description="Cumulative transaction count and total volume for LUSD over time." isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} onRunQuery={() => runQuery("cumulativeGrowth")} cooldownKey="cooldown:cumulative-growth">
-              {/* <CumulativeGrowthChart data={cumulativeDisplay} /> */}
+            
               <ChartAreaInteractive data={cumulativeDisplay} symbol="LUSD"/>
             </ChartCard>
             <ChartCard title="Unique Wallets" description="Unique wallets and new wallets over time for LUSD." isLoading={loadingStates.uniqueWallets || uniqueWalletsLoading} onRunQuery={() => runQuery("uniqueWallets")} cooldownKey="cooldown:unique-wallets">
