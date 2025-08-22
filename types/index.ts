@@ -227,26 +227,6 @@ export interface MoralisTokenData {
     marketCap?: number
     change24h?: number
   }
-  
-  export interface TransactionData {
-    timestamp: string
-    transactionHash?: string
-    fromAddress: string
-    toAddress: string
-    amount: number
-    gasUsed?: number
-    gasPrice?: number
-    blockNumber?: number
-    isSuccess?: boolean
-  }
-  
-  export interface HourlyActivityData {
-    date: string
-    hour: number
-    transactionCount: number
-    totalVolume: number
-    uniqueWallets: number
-  }  
   export interface TokenHolder {
     address: string;
     balance: number;
