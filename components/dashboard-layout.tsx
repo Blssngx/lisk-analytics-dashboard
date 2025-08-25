@@ -71,10 +71,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
               </div>
 
-              <Button onClick={handleLogout} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-                <LogOut className="h-4 w-4" />
-              </Button>
-
               {/* Mobile menu button */}
               <div className="md:hidden">
                 <Button
