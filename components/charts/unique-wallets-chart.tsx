@@ -131,10 +131,10 @@ export function UniqueWalletsDisplay({
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
-              <span>All</span>
+              <span>Combined</span>
             </div>
-            <div className="text-foreground text-2xl font-bold">
-              Both
+            <div className="text-foreground text-xl font-bold">
+              Overview
             </div>
           </button>
           <button
@@ -147,7 +147,7 @@ export function UniqueWalletsDisplay({
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
               <span>{chartConfig.wallets.label}</span>
             </div>
-            <div className="text-foreground text-2xl font-bold">
+            <div className="text-foreground text-xl font-bold">
               {legendStats.wallets.toLocaleString()}
             </div>
           </button>
@@ -161,7 +161,7 @@ export function UniqueWalletsDisplay({
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
               <span>{chartConfig.newWallets.label}</span>
             </div>
-            <div className="text-foreground text-2xl font-bold">
+            <div className="text-foreground text-xl font-bold">
               {legendStats.newWallets.toLocaleString()}
             </div>
           </button>

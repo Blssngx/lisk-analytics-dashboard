@@ -390,7 +390,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
               </div>
               <span>Combined</span>
             </div>
-            <div className="text-foreground text-lg font-bold">
+            <div className="text-foreground text-xl font-bold">
               Overview
             </div>
           </button>
@@ -406,7 +406,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
               <span>Total Amount ({symbol})</span>
             </div>
-            <div className="text-foreground text-lg font-bold">
+            <div className="text-foreground text-xl font-bold">
               {legendStats.totalAmount.toLocaleString()}
             </div>
           </button>
@@ -421,7 +421,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
               <span>Payment Count</span>
             </div>
-            <div className="text-foreground text-lg font-bold">
+            <div className="text-foreground text-xl font-bold">
               {legendStats.payments.toLocaleString()}
             </div>
           </button>
@@ -436,7 +436,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-3)" }} />
               <span>Average Payment ({symbol} per week)</span>
             </div>
-            <div className="text-foreground text-lg font-bold">
+            <div className="text-foreground text-xl font-bold">
               {Number(legendStats.averagePayment).toLocaleString()}
             </div>
           </button>

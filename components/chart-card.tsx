@@ -16,7 +16,7 @@ interface ChartCardProps {
 }
 
 export function ChartCard({ title, description, children, isLoading, onRunQuery, cooldownKey }: ChartCardProps) {
-  const COOLDOWN_MS = 5 * 60 * 1000
+  const COOLDOWN_MS = 10 * 1000
   const [remaining, setRemaining] = useState(0)
 
   useEffect(() => {

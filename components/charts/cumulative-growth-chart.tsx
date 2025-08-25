@@ -116,10 +116,10 @@ export function ChartAreaInteractive({ data, isLoading, symbol }: { data?: Cumul
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
-              <span>All</span>
+              <span>Combined</span>
             </div>
-            <div className="text-foreground text-2xl font-bold">
-              Both
+            <div className="text-foreground text-xl font-bold">
+              Overview
             </div>
           </button> <button
             onClick={() => setActiveChart("desktop")}
@@ -131,7 +131,7 @@ export function ChartAreaInteractive({ data, isLoading, symbol }: { data?: Cumul
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-1)" }} />
               <span>{chartConfig.desktop.label}</span>
             </div>
-            <div className="text-foreground text-2xl font-bold">
+            <div className="text-foreground text-xl font-bold">
               {legendStats.desktop.toLocaleString()}
             </div>
           </button>
@@ -145,7 +145,7 @@ export function ChartAreaInteractive({ data, isLoading, symbol }: { data?: Cumul
               <span className="h-2 w-2 rounded-[2px]" style={{ backgroundColor: "var(--chart-2)" }} />
               <span>{chartConfig.mobile.label} ({symbol})</span>
             </div>
-            <div className="text-foreground text-2xl font-bold">
+            <div className="text-foreground text-xl font-bold">
               {legendStats.mobile.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </div>
           </button>

@@ -274,7 +274,7 @@ export const useRefreshTokenData = () => {
 
 export const useRefreshCumulativeGrowth = () => {
   const queryClient = useQueryClient()
-  const COOLDOWN_MS = 5 * 60 * 1000
+  const COOLDOWN_MS = 10 * 1000
   const lastRunKey = 'cooldown:cumulative-growth'
   
   return useMutation({
@@ -316,7 +316,7 @@ export const useRefreshCumulativeGrowth = () => {
 
 export const useRefreshUniqueWallets = () => {
   const queryClient = useQueryClient()
-  const COOLDOWN_MS = 5 * 60 * 1000
+  const COOLDOWN_MS = 10 * 1000
   const lastRunKey = 'cooldown:unique-wallets'
   
   return useMutation({
@@ -357,7 +357,7 @@ export const useRefreshUniqueWallets = () => {
 
 export const useRefreshWeeklyPayments = () => {
   const queryClient = useQueryClient()
-  const COOLDOWN_MS = 5 * 60 * 1000
+  const COOLDOWN_MS = 10 * 1000
   const lastRunKey = 'cooldown:weekly-payments'
   
   return useMutation({
@@ -398,7 +398,7 @@ export const useRefreshWeeklyPayments = () => {
 
 export const useRefreshTokenHolders = () => {
   const queryClient = useQueryClient()
-  const COOLDOWN_MS = 5 * 60 * 1000
+  const COOLDOWN_MS = 10 * 1000
   const lastRunKey = 'cooldown:token-holders'
   
   return useMutation({

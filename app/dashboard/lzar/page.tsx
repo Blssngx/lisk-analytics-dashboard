@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { AuthGuard } from "@/components/auth-guard"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { MetricCard } from "@/components/metric-card"
 import { ChartCard } from "@/components/chart-card"
@@ -135,7 +134,6 @@ export default function LZARPage() {
   const currentTotalWallets = walletsDisplay.length > 0 ? walletsDisplay[walletsDisplay.length-1].uniqueWalletCount : 0
 
   return (
-    <AuthGuard>
       <DashboardLayout>
         <div className="p-6 space-y-6">
           {/* Header */}
@@ -201,7 +199,7 @@ export default function LZARPage() {
 
           {/* Charts */}
           <div className="space-y-6">
-            <ChartCard title="Cumulative Growth" description="Cumulative transaction count and total volume for LZAR over time." isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} onRunQuery={() => runQuery("cumulativeGrowth")} cooldownKey="cooldown:cumulative-growth">
+            <ChartCard title="Transactions" description="Cumulative transaction count and total volume for LZAR over time." isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} onRunQuery={() => runQuery("cumulativeGrowth")} cooldownKey="cooldown:cumulative-growth">
              
               <ChartAreaInteractive data={cumulativeDisplay} isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading} symbol="LZAR"/>
             </ChartCard>
@@ -220,6 +218,5 @@ export default function LZARPage() {
           </div>
         </div>
       </DashboardLayout>
-    </AuthGuard>
   )
 }

@@ -200,13 +200,12 @@ export function TokenHoldersPieChart({
     return { ...stats, total };
   }, [chartData]);
   const bubbleData = React.useMemo(() => {
-   
-    
+    if(!data) return []
     try {
      
       
       // Process the raw holder data using TokenHoldersProcessor
-      const processedData = TokenHoldersProcessor.processHoldersData(data.holdersData, { decimals: 18 })
+     const processedData = TokenHoldersProcessor.processHoldersData(data.holdersData, { decimals: 18 })
       
       if (!processedData || !processedData.holders || processedData.holders.length === 0) {
     
@@ -238,35 +237,15 @@ export function TokenHoldersPieChart({
     return chartData.reduce((acc, curr) => acc + curr.count, 0)
   }, [chartData])
 
-  if (isLoading) {
+  if (isLoading || chartData.length === 0) {
     return (
-      <Card className="flex flex-col">
-        <CardHeader className="items-center pb-0">
-          <CardTitle>Token Holders Analysis</CardTitle>
-          <CardDescription>Loading...</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1 pb-0">
+      
+        <div className="flex-1 pb-0">
           <div className="mx-auto aspect-square max-h-[500px] flex items-center justify-center">
             <div className="text-muted-foreground">Loading chart data...</div>
           </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!data || chartData.length === 0) {
-  return (
-    <Card className="flex flex-col">
-      <CardHeader className="items-center pb-0">
-          <CardTitle>Token Holders Analysis</CardTitle>
-          <CardDescription>No data available</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 pb-0">
-          <div className="mx-auto aspect-square max-h-[250px] flex items-center justify-center">
-            <div className="text-muted-foreground">No holders data available</div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+     
     )
   }
 
@@ -291,7 +270,7 @@ export function TokenHoldersPieChart({
                   <span className="hidden lg:inline">{label}</span>
                   <span className="lg:hidden">{key.split(' ')[0]}</span>
                 </div>
-                <div className="text-foreground text-lg lg:text-2xl font-bold">
+                <div className="text-foreground text-xl font-bold">
                   {stat ? stat.count.toLocaleString() : 0}
                 </div>
               </div>
