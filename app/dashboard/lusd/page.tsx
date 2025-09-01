@@ -161,11 +161,15 @@ export default function LUSDPage() {
             <MetricCard 
               title="Total Supply" 
               value={
-                moralisTokenLoading 
+                tokenHoldersLoading 
                   ? "Loading..." 
                   : moralisTokenError 
                   ? "Error loading data"
-                  : `${Number(moralisTokenData?.total_supply_formatted || 0).toLocaleString()} LUSD`
+                  : `${Number(
+                    Array.isArray(holdersDisplay)
+                      ? "Loading..."
+                      : holdersDisplay?.totalSupply || 0
+                  ).toLocaleString()} LUSD`
               } 
               subtitle={
                 moralisTokenError 

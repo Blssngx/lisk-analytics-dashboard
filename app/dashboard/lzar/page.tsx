@@ -160,11 +160,15 @@ export default function LZARPage() {
             <MetricCard 
               title="Total Supply" 
               value={
-                moralisTokenLoading 
+                tokenHoldersLoading 
                   ? "Loading..." 
                   : moralisTokenError 
                   ? "Error loading data"
-                  : `${Number(moralisTokenData?.total_supply_formatted || 0).toLocaleString()} LZAR`
+                  : `${Number(
+                      Array.isArray(holdersDisplay)
+                        ? "Loading..."
+                        : holdersDisplay?.totalSupply || 0
+                    ).toLocaleString()} LZAR`
               } 
               subtitle={
                 moralisTokenError 
