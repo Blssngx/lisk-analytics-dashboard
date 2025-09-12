@@ -9,33 +9,35 @@ export class TokenHoldersProcessor {
     // Process each holder using pre-formatted data from Moralis
     moralisData.forEach((holder: any) => {
       try {
-        if (!holder.balance_formatted || !holder.owner_address) {
-          console.warn('Skipping holder with missing data:', holder);
+        // Handle both snake_case and camelCase field names from Moralis
+        const balanceFormatted = holder.balance_formatted || holder.balanceFormatted;
+        const ownerAddress = holder.owner_address || holder.ownerAddress;
+        const percentage = holder.percentage_relative_to_total_supply || holder.percentageRelativeToTotalSupply || 0;
+
+        if (!balanceFormatted || !ownerAddress) {
+          //console.warn('Skipping holder with missing data:', holder);
           return;
         }
 
         // Use the pre-formatted balance from Moralis
-        const balance = parseFloat(holder.balance_formatted);
+        const balance = parseFloat(balanceFormatted);
         
         // Skip if balance conversion failed
         if (isNaN(balance)) {
-          console.warn('Skipping holder with invalid balance:', holder);
+          //console.warn('Skipping holder with invalid balance:', holder);
           return;
         }
 
-        // Use the pre-calculated percentage from Moralis
-        const percentage = holder.percentage_relative_to_total_supply || 0;
-
         holders.push({
-          address: holder.owner_address,
+          address: ownerAddress,
           balance,
-          balanceFormatted: holder.balance_formatted,
+          balanceFormatted: balanceFormatted,
           percentage
         });
 
         totalSupply += balance;
       } catch (error) {
-        console.error('Error processing holder:', holder, error);
+        //console.error('Error processing holder:', holder, error);
       }
     });
 

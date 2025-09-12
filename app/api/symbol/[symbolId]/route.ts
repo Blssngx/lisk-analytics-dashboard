@@ -23,7 +23,7 @@ export async function GET(
     
     return NextResponse.json(serializedToken)
   } catch (error) {
-    console.error('Error fetching token:', error)
+    //console.error('Error fetching token:', error)
     return NextResponse.json({ error: 'Failed to fetch token' }, { status: 500 })
   }
 }

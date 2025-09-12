@@ -29,7 +29,7 @@ export async function GET(
     // No need to convert Int values to strings for JSON serialization
     return NextResponse.json(wallets)
   } catch (error) {
-    console.error('Error fetching wallet data:', error)
+    //console.error('Error fetching wallet data:', error)
     return NextResponse.json({ error: 'Failed to fetch wallet data' }, { status: 500 })
   }
 }

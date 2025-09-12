@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       message: "Weekly payments data updated",
     })
   } catch (error) {
-    console.error("Weekly payments query error:", error);
+    //console.error("Weekly payments query error:", error);
     return NextResponse.json(
       {
         error: "Weekly payments data fetch failed",

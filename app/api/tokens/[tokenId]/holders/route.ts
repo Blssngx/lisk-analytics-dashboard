@@ -20,7 +20,7 @@ export async function GET(
 
     return NextResponse.json(holdersData);
   } catch (error) {
-    console.error('Token holders fetch error:', error);
+    //console.error('Token holders fetch error:', error);
     return NextResponse.json({
       error: "Failed to fetch token holders data",
       details: error instanceof Error ? error.message : 'Unknown error'

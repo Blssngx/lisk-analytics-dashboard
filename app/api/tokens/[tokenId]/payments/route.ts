@@ -36,7 +36,7 @@ export async function GET(
     
     return NextResponse.json(serializedPayments)
   } catch (error) {
-    console.error('Error fetching payment data:', error)
+    //console.error('Error fetching payment data:', error)
     return NextResponse.json({ error: 'Failed to fetch payment data' }, { status: 500 })
   }
 }

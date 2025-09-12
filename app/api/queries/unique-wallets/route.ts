@@ -51,7 +51,7 @@ export async function POST(request: NextRequest){
         })
     }catch(error)
     {
-        console.error('Unique wallets query error:', error);
+        //console.error('Unique wallets query error:', error);
         return NextResponse.json({
             error: "Unique wallets data fetch failed",
             details: error instanceof Error ? error.message : 'Unknown error'

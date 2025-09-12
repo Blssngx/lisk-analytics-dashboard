@@ -227,7 +227,7 @@ export function TokenHoldersPieChart({
             : 'Small (<0.01%)'
         }))
     } catch (error) {
-      console.error('Error processing holder data:', error)
+      //console.error('Error processing holder data:', error)
       return []
     }
   }, [data?.holdersData])

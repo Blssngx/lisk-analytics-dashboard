@@ -180,7 +180,6 @@ static async upsertTokenHolders(tokenId: string, data: any) {
       holdersData: data.holders
     },
     create: {
-      tokenId,
       date: new Date(today),
       totalHolders: data.totalHolders,
       totalSupply: data.totalSupply,
@@ -188,7 +187,10 @@ static async upsertTokenHolders(tokenId: string, data: any) {
       largeCount: data.distribution.large,
       mediumCount: data.distribution.medium,
       smallCount: data.distribution.small,
-      holdersData: data.holders
+      holdersData: data.holders,
+      token: {
+        connect: { id: tokenId }
+      }
     }
   });
 }

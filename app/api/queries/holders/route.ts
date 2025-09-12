@@ -21,35 +21,44 @@ export async function POST(request: NextRequest){
         // Fetch from Moralis - get token owners
         const moralis = await initializeMoralis();
         const firstPage = await moralis.EvmApi.token.getTokenOwners({
-            chain: EvmChain.create(1135), // Lisk chain ID
+            chain: EvmChain.create(1135),
             order: "DESC",
             tokenAddress: token.contractAddress,
-            limit: 100
         });
-        let compiledData = firstPage.raw as unknown as any
-        while(compiledData.cursor){
-            const next = await moralis.EvmApi.token.getTokenOwners({
+        
+        // Initialize with first page data
+        let allHolders = [...firstPage.raw().result];
+        let currentCursor = firstPage.raw().cursor;
+        
+        //console.log(`First page: ${allHolders.length} holders, cursor: ${currentCursor}`);
+        
+        // Fetch all remaining pages using cursor
+        while(currentCursor) {
+            //console.log(`Fetching next page with cursor: ${currentCursor}`);
+            const nextPage = await moralis.EvmApi.token.getTokenOwners({
                 chain: EvmChain.create(1135), // Lisk chain ID
                 order: "DESC",
                 tokenAddress: token.contractAddress,
-                limit: 100,
-                cursor: compiledData.cursor
-            }) as unknown as any;
+                cursor: currentCursor
+            });
             
-            compiledData = {...next.raw, result: [...compiledData.result, ...next.raw.result]}
+            // Add new results to our collection
+            allHolders = [...allHolders, ...nextPage.raw().result];
+            currentCursor = nextPage.raw().cursor;
+            
+            //console.log(`Page complete: ${nextPage.raw().result.length} new holders, total: ${allHolders.length}, next cursor: ${currentCursor}`);
         }
-        // Extract the data from the response
-        const holdersData = compiledData.toJSON().result || [];
         
+        //console.log(`Final total holders fetched: ${allHolders.length}`);
       
         
         // Process and calculate holders data
-        const processedData = TokenHoldersProcessor.processHoldersData(holdersData, token);
+        const processedData = TokenHoldersProcessor.processHoldersData(allHolders, token);
         
         // Store both processed data and raw data for bubble chart
         const dataToStore = {
           ...processedData,
-          holders: holdersData // Store raw Moralis data for client-side processing
+          holders: allHolders // Store raw Moralis data for client-side processing
         };
         
         // Store in db
@@ -62,7 +71,7 @@ export async function POST(request: NextRequest){
         })
     }catch(error)
     {
-        console.error('Token holders query error:', error);
+        //console.error('Token holders query error:', error);
         return NextResponse.json({
             error: "Token holders data fetch failed",
             details: error instanceof Error ? error.message : 'Unknown error'

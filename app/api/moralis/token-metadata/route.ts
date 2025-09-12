@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       message: 'Token metadata fetched successfully'
     })
   } catch (error) {
-    console.error('Token metadata fetch error:', error);
+    //console.error('Token metadata fetch error:', error);
     return NextResponse.json({
       error: "Token metadata fetch failed",
       details: error instanceof Error ? error.message : 'Unknown error'

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest){
         })
     }catch(error)
     {
-        console.error('Cumulative growth query error:', error);
+        //console.error('Cumulative growth query error:', error);
         return NextResponse.json({
             error: "Cumulative growth data fetch failed",
             details: error instanceof Error ? error.message : 'Unknown error'

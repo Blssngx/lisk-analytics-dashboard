@@ -309,7 +309,7 @@ export const useRefreshCumulativeGrowth = () => {
       queryClient.invalidateQueries({ queryKey: ['graphql', 'cumulativeMetrics'] })
     },
     onError: (error) => {
-      console.error('Cumulative growth refresh error:', error)
+      //console.error('Cumulative growth refresh error:', error)
     },
   })
 }
@@ -350,7 +350,7 @@ export const useRefreshUniqueWallets = () => {
       queryClient.invalidateQueries({ queryKey: ['graphql', 'walletData'] })
     },
     onError: (error) => {
-      console.error('Unique wallets refresh error:', error)
+      //console.error('Unique wallets refresh error:', error)
     },
   })
 }
@@ -391,7 +391,7 @@ export const useRefreshWeeklyPayments = () => {
       queryClient.invalidateQueries({ queryKey: ['graphql', 'weeklyPayments'] })
     },
     onError: (error) => {
-      console.error('Weekly payments refresh error:', error)
+      //console.error('Weekly payments refresh error:', error)
     },
   })
 }
@@ -432,7 +432,7 @@ export const useRefreshTokenHolders = () => {
       queryClient.invalidateQueries({ queryKey: ['graphql', 'tokenHolders'] })
     },
     onError: (error) => {
-      console.error('Token holders refresh error:', error)
+      //console.error('Token holders refresh error:', error)
     },
   })
 }

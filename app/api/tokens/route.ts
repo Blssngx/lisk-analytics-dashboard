@@ -14,7 +14,7 @@ export async function GET() {
     
     return NextResponse.json(serializedTokens)
   } catch (error) {
-    console.error('Error fetching tokens:', error)
+    //console.error('Error fetching tokens:', error)
     return NextResponse.json({ error: 'Failed to fetch tokens' }, { status: 500 })
   }
 }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(token, { status: 201 })
   } catch (error) {
-    console.error('Error creating token:', error)
+    //console.error('Error creating token:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
