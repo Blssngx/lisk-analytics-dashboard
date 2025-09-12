@@ -20,15 +20,26 @@ export async function POST(request: NextRequest){
 
         // Fetch from Moralis - get token owners
         const moralis = await initializeMoralis();
-        const response = await moralis.EvmApi.token.getTokenOwners({
+        const firstPage = await moralis.EvmApi.token.getTokenOwners({
             chain: EvmChain.create(1135), // Lisk chain ID
             order: "DESC",
             tokenAddress: token.contractAddress,
             limit: 100
         });
-
+        let compiledData = firstPage.raw as unknown as any
+        while(compiledData.cursor){
+            const next = await moralis.EvmApi.token.getTokenOwners({
+                chain: EvmChain.create(1135), // Lisk chain ID
+                order: "DESC",
+                tokenAddress: token.contractAddress,
+                limit: 100,
+                cursor: compiledData.cursor
+            }) as unknown as any;
+            
+            compiledData = {...next.raw, result: [...compiledData.result, ...next.raw.result]}
+        }
         // Extract the data from the response
-        const holdersData = response.toJSON().result || [];
+        const holdersData = compiledData.toJSON().result || [];
         
       
         
