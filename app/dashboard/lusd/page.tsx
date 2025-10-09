@@ -34,7 +34,7 @@ export default function LUSDPage() {
   const { data: cumulativeGrowthData, isLoading: cumulativeGrowthLoading } = useCumulativeGrowth(LUSD_CONTRACT)
   const { data: uniqueWalletsData, isLoading: uniqueWalletsLoading } = useUniqueWallets(LUSD_CONTRACT)
   const { data: weeklyPaymentsData, isLoading: weeklyPaymentsLoading } = useMoralisWeeklyPayments(LUSD_CONTRACT, METHOD_ID)
-  const { data: tokenHoldersData, isLoading: tokenHoldersLoading } = useMoralisTokenHolders(LUSD_CONTRACT)
+  const { data: tokenHoldersData, isLoading: tokenHoldersLoading, error: tokenHoldersError } = useMoralisTokenHolders(LUSD_CONTRACT)
 
   // Mutations
   const refreshCumulativeGrowth = useRefreshCumulativeGrowth()
@@ -163,7 +163,7 @@ export default function LUSDPage() {
               value={
                 tokenHoldersLoading 
                   ? "Loading..." 
-                  : moralisTokenError 
+                  : tokenHoldersError 
                   ? "Error loading data"
                   : `${Number(
                     Array.isArray(holdersDisplay)
@@ -172,29 +172,17 @@ export default function LUSDPage() {
                   ).toLocaleString()} LUSD`
               } 
               subtitle={
-                moralisTokenError 
+                tokenHoldersError 
                   ? "Error loading data" 
-                  : moralisTokenLoading 
+                  : tokenHoldersLoading 
                   ? "Fetching from blockchain..."
                   : "Live from blockchain"
               } 
             />
             <MetricCard 
               title="Contract Address" 
-              value={
-                moralisTokenLoading 
-                  ? "Loading..." 
-                  : moralisTokenError 
-                  ? "Error loading data"
-                  : `${LUSD_CONTRACT.slice(0,8)}...${LUSD_CONTRACT.slice(-6)}`
-              } 
-              subtitle={
-                moralisTokenError 
-                  ? "Error loading data" 
-                  : moralisTokenLoading 
-                  ? "Fetching from blockchain..."
-                  : "Token Contract address"
-              }
+              value={`${LUSD_CONTRACT.slice(0,8)}...${LUSD_CONTRACT.slice(-6)}`}
+              subtitle={"Token Contract address"}
             >
               <Button onClick={() => copyToClipboard(LUSD_CONTRACT)} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
