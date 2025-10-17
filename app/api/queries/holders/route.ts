@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { EvmChain } from "@moralisweb3/common-evm-utils";
 
 export async function POST(request: NextRequest) {
-	console.log("Token holders route called");
 	try {
 		const body = await request.json().catch(() => ({} as any));
 		const contractAddress: string | undefined = body?.contractAddress;
@@ -44,11 +43,8 @@ export async function POST(request: NextRequest) {
 		let allHolders = [...firstPage.raw().result];
 		let currentCursor = firstPage.raw().cursor;
 
-		//console.log(`First page: ${allHolders.length} holders, cursor: ${currentCursor}`);
-
 		// Fetch all remaining pages using cursor
 		while (currentCursor) {
-			//console.log(`Fetching next page with cursor: ${currentCursor}`);
 			const nextPage = await moralis.EvmApi.token.getTokenOwners({
 				chain: EvmChain.create(1135), // Lisk chain ID
 				order: "DESC",
@@ -59,11 +55,7 @@ export async function POST(request: NextRequest) {
 			// Add new results to our collection
 			allHolders = [...allHolders, ...nextPage.raw().result];
 			currentCursor = nextPage.raw().cursor;
-
-			//console.log(`Page complete: ${nextPage.raw().result.length} new holders, total: ${allHolders.length}, next cursor: ${currentCursor}`);
 		}
-
-		//console.log(`Final total holders fetched: ${allHolders.length}`);
 
 		// Process and calculate holders data
 		const processedData = TokenHoldersProcessor.processHoldersData(allHolders, token);
