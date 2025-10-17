@@ -3,6 +3,7 @@ import { TokenDataService } from "@/lib/services/token-data-service";
 import { PrismaClient } from "@/lib/generated/prisma";
 
 const prisma = new PrismaClient();
+const tokenDataService = new TokenDataService();
 
 export async function GET(
 	request: NextRequest,
@@ -29,7 +30,7 @@ export async function GET(
 		}
 
 		// Fetch all cumulative metrics data for the token without any filtering
-		const metrics = await TokenDataService.getAllCumulativeMetrics(tokenId);
+		const metrics = await tokenDataService.getAllCumulativeMetrics(tokenId);
 
 		// Convert Decimal values to strings for JSON serialization
 		const serializedMetrics = metrics.map((metric) => ({

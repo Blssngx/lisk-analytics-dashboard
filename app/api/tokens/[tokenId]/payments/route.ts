@@ -3,6 +3,7 @@ import { TokenDataService } from "@/lib/services/token-data-service";
 import { PrismaClient } from "@/lib/generated/prisma";
 
 const prisma = new PrismaClient();
+const tokenDataService = new TokenDataService();
 
 export async function GET(
 	request: NextRequest,
@@ -29,7 +30,7 @@ export async function GET(
 		}
 
 		// Fetch all payment data for the token without any filtering
-		const payments = await TokenDataService.getAllPaymentData(tokenId);
+		const payments = await tokenDataService.getAllPaymentData(tokenId);
 
 		// Convert Decimal values to strings for JSON serialization
 		const serializedPayments = payments.map((payment) => ({
