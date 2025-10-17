@@ -2,10 +2,10 @@ import { PrismaClient } from "@/lib/generated/prisma";
 import { TokenData, PaymentData, CumulativeMetricsData, WalletData } from "@/types";
 
 export class TokenDataService {
-	constructor(private prisma: PrismaClient = new PrismaClient()) {}
+	private static readonly prisma: PrismaClient = new PrismaClient();
 
 	// Token Management
-	async createToken(tokenData: TokenData) {
+	static async createToken(tokenData: TokenData) {
 		return await this.prisma.token.create({
 			data: {
 				name: tokenData.name,
@@ -25,26 +25,26 @@ export class TokenDataService {
 		});
 	}
 
-	async getToken(tokenId: string) {
+	static async getToken(tokenId: string) {
 		return await this.prisma.token.findUnique({
 			where: { id: tokenId },
 		});
 	}
 
-	async getTokenBySymbol(symbol: string) {
+	static async getTokenBySymbol(symbol: string) {
 		return await this.prisma.token.findUnique({
 			where: { symbol },
 		});
 	}
 
-	async getAllTokens() {
+	static async getAllTokens() {
 		return await this.prisma.token.findMany({
 			where: { isActive: true },
 		});
 	}
 
 	// Cumulative Metrics
-	async upsertCumulativeMetrics(tokenId: string, data: CumulativeMetricsData) {
+	static async upsertCumulativeMetrics(tokenId: string, data: CumulativeMetricsData) {
 		return await this.prisma.dailyCumulativeMetrics.upsert({
 			where: {
 				tokenId_date: {
@@ -69,7 +69,7 @@ export class TokenDataService {
 		});
 	}
 
-	async getAllCumulativeMetrics(tokenId: string) {
+	static async getAllCumulativeMetrics(tokenId: string) {
 		return await this.prisma.dailyCumulativeMetrics.findMany({
 			where: { tokenId },
 			orderBy: { date: "asc" },
@@ -77,7 +77,7 @@ export class TokenDataService {
 	}
 
 	// Wallet Data
-	async upsertWalletData(tokenId: string, data: WalletData) {
+	static async upsertWalletData(tokenId: string, data: WalletData) {
 		return await this.prisma.dailyUniqueWallets.upsert({
 			where: {
 				tokenId_date: {
@@ -100,7 +100,7 @@ export class TokenDataService {
 		});
 	}
 
-	async getAllWalletData(tokenId: string) {
+	static async getAllWalletData(tokenId: string) {
 		return await this.prisma.dailyUniqueWallets.findMany({
 			where: { tokenId },
 			orderBy: { date: "asc" },
@@ -108,7 +108,7 @@ export class TokenDataService {
 	}
 
 	// Payment Data
-	async upsertPaymentData(tokenId: string, data: PaymentData) {
+	static async upsertPaymentData(tokenId: string, data: PaymentData) {
 		return await this.prisma.weeklyPayments.upsert({
 			where: {
 				tokenId_weekStartDate: {
@@ -131,7 +131,7 @@ export class TokenDataService {
 		});
 	}
 
-	async getAllPaymentData(tokenId: string) {
+	static async getAllPaymentData(tokenId: string) {
 		return await this.prisma.weeklyPayments.findMany({
 			where: { tokenId },
 			orderBy: { weekStartDate: "asc" },
@@ -139,17 +139,17 @@ export class TokenDataService {
 	}
 
 	// Bulk Operations
-	async bulkUpsertCumulativeMetrics(tokenId: string, dataArray: CumulativeMetricsData[]) {
+	static async bulkUpsertCumulativeMetrics(tokenId: string, dataArray: CumulativeMetricsData[]) {
 		const operations = dataArray.map((data) => this.upsertCumulativeMetrics(tokenId, data));
 		return await Promise.all(operations);
 	}
 
-	async bulkUpsertWalletData(tokenId: string, dataArray: WalletData[]) {
+	static async bulkUpsertWalletData(tokenId: string, dataArray: WalletData[]) {
 		const operations = dataArray.map((data) => this.upsertWalletData(tokenId, data));
 		return await Promise.all(operations);
 	}
 
-	async getTokenByContractAddress(contractAddress: string) {
+	static async getTokenByContractAddress(contractAddress: string) {
 		return await this.prisma.token.findFirst({
 			where: {
 				contractAddress: {
@@ -161,7 +161,7 @@ export class TokenDataService {
 	}
 
 	// Token Holders methods
-	async upsertTokenHolders(tokenId: string, data: any) {
+	static async upsertTokenHolders(tokenId: string, data: any) {
 		const today = new Date().toISOString().split("T")[0];
 
 		return await this.prisma.tokenHolders.upsert({
@@ -196,11 +196,11 @@ export class TokenDataService {
 		});
 	}
 
-	async bulkUpsertTokenHolders(tokenId: string, data: any) {
+	static async bulkUpsertTokenHolders(tokenId: string, data: any) {
 		return await this.upsertTokenHolders(tokenId, data);
 	}
 
-	async getTokenHolders(tokenId: string) {
+	static async getTokenHolders(tokenId: string) {
 		return await this.prisma.tokenHolders.findFirst({
 			where: { tokenId },
 			orderBy: { date: "desc" },

@@ -1,8 +1,6 @@
 import { TokenDataService } from "@/lib/services/token-data-service";
 import { NextRequest, NextResponse } from "next/server";
 
-const tokenDataService = new TokenDataService();
-
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ tokenId: string }> },
@@ -14,7 +12,7 @@ export async function GET(
 			return NextResponse.json({ error: "Token ID is required" }, { status: 400 });
 		}
 
-		const holdersData = await tokenDataService.getTokenHolders(tokenId);
+		const holdersData = await TokenDataService.getTokenHolders(tokenId);
 
 		if (!holdersData) {
 			return NextResponse.json({ error: "Token holders data not found" }, { status: 404 });

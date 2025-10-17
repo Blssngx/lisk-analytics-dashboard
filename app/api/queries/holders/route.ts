@@ -4,8 +4,6 @@ import { TokenHoldersProcessor } from "@/lib/services/token-holders-processor";
 import { NextRequest, NextResponse } from "next/server";
 import { EvmChain } from "@moralisweb3/common-evm-utils";
 
-const tokenDataService = new TokenDataService();
-
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json().catch(() => ({} as any));
@@ -16,7 +14,7 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: "contractAddress is required" }, { status: 400 });
 		}
 
-		const token = await tokenDataService.getTokenByContractAddress(
+		const token = await TokenDataService.getTokenByContractAddress(
 			contractAddress.toLowerCase(),
 		);
 		if (!token) {
@@ -69,7 +67,7 @@ export async function POST(request: NextRequest) {
 		};
 
 		// Store in db
-		await tokenDataService.bulkUpsertTokenHolders(token.id, dataToStore);
+		await TokenDataService.bulkUpsertTokenHolders(token.id, dataToStore);
 
 		return NextResponse.json({
 			success: true,

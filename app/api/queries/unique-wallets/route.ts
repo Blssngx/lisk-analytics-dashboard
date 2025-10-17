@@ -4,8 +4,6 @@ import { WalletDataProcessor } from "@/lib/services/wallet-data-processor";
 import { NextRequest, NextResponse } from "next/server";
 import { EvmChain } from "@moralisweb3/common-evm-utils";
 
-const tokenDataService = new TokenDataService();
-
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json().catch(() => ({} as any));
@@ -15,7 +13,7 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: "contractAddress is required" }, { status: 400 });
 		}
 
-		const token = await tokenDataService.getTokenByContractAddress(contractAddress);
+		const token = await TokenDataService.getTokenByContractAddress(contractAddress);
 		if (!token) {
 			console.error(`Token not found for contractAddress: ${contractAddress}`);
 			return NextResponse.json(
@@ -53,7 +51,7 @@ export async function POST(request: NextRequest) {
 		);
 
 		// Store in db
-		await tokenDataService.bulkUpsertWalletData(token.id, processedData);
+		await TokenDataService.bulkUpsertWalletData(token.id, processedData);
 
 		return NextResponse.json({
 			success: true,

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
 
-const tokenDataService = new TokenDataService();
-
 export async function GET(
 	request: NextRequest,
 	{ params }: { params: Promise<{ symbolId: string }> },
@@ -10,7 +8,7 @@ export async function GET(
 	try {
 		const { symbolId } = await params;
 
-		const token = await tokenDataService.getTokenBySymbol(symbolId);
+		const token = await TokenDataService.getTokenBySymbol(symbolId);
 
 		if (!token) {
 			return NextResponse.json({ error: "Token not found" }, { status: 404 });

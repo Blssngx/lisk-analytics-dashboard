@@ -3,7 +3,6 @@ import { TokenDataService } from "@/lib/services/token-data-service";
 import { PrismaClient } from "@/lib/generated/prisma";
 
 const prisma = new PrismaClient();
-const tokenDataService = new TokenDataService();
 
 export async function GET(
 	request: NextRequest,
@@ -28,7 +27,7 @@ export async function GET(
 		}
 
 		// Fetch all wallet data for the token without any filtering
-		const wallets = await tokenDataService.getAllWalletData(tokenId);
+		const wallets = await TokenDataService.getAllWalletData(tokenId);
 
 		// No need to convert Int values to strings for JSON serialization
 		return NextResponse.json(wallets);

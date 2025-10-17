@@ -3,8 +3,6 @@ import { TokenDataService } from "@/lib/services/token-data-service";
 import { WeeklyPaymentsProcessor } from "@/lib/services/weekly-payments-processor";
 import { NextRequest, NextResponse } from "next/server";
 
-const tokenDataService = new TokenDataService();
-
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json().catch(() => ({} as any));
@@ -14,7 +12,7 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: "contractAddress is required" }, { status: 400 });
 		}
 
-		const token = await tokenDataService.getTokenByContractAddress(
+		const token = await TokenDataService.getTokenByContractAddress(
 			contractAddress.toLowerCase(),
 		);
 		if (!token) {
@@ -60,7 +58,7 @@ export async function POST(request: NextRequest) {
 		);
 
 		for (const weeklyData of processedData) {
-			await tokenDataService.upsertPaymentData(token.id, weeklyData);
+			await TokenDataService.upsertPaymentData(token.id, weeklyData);
 		}
 
 		return NextResponse.json({

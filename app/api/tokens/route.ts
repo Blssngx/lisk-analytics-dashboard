@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
 
-const tokenDataService = new TokenDataService();
-
 export async function GET() {
 	try {
-		const tokens = await tokenDataService.getAllTokens();
+		const tokens = await TokenDataService.getAllTokens();
 
 		// Convert Decimal values to strings for JSON serialization
 		const serializedTokens = tokens.map((token) => ({
@@ -33,7 +31,7 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const token = await tokenDataService.createToken({
+		const token = await TokenDataService.createToken({
 			name,
 			symbol,
 			contractAddress,

@@ -4,8 +4,6 @@ import { CumulativeGrowthProcessor } from "@/lib/services/cumulative-growth-proc
 import { NextRequest, NextResponse } from "next/server";
 import { EvmChain } from "@moralisweb3/common-evm-utils";
 
-const tokenDataService = new TokenDataService();
-
 export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json().catch(() => ({} as any));
@@ -16,7 +14,7 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Resolve the token by contract address
-		const token = await tokenDataService.getTokenByContractAddress(contractAddress);
+		const token = await TokenDataService.getTokenByContractAddress(contractAddress);
 		if (!token) {
 			console.error(`Token not found for contractAddress: ${contractAddress}`);
 			return NextResponse.json(
@@ -48,7 +46,7 @@ export async function POST(request: NextRequest) {
 		const processedData = CumulativeGrowthProcessor.processCumulativeData(compiledData);
 
 		// Store in db
-		await tokenDataService.bulkUpsertCumulativeMetrics(token.id, processedData);
+		await TokenDataService.bulkUpsertCumulativeMetrics(token.id, processedData);
 
 		return NextResponse.json({
 			success: true,
