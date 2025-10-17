@@ -34,7 +34,7 @@ export default function LZARPage() {
   const { data: cumulativeGrowthData, isLoading: cumulativeGrowthLoading } = useCumulativeGrowth(LZAR_CONTRACT)
   const { data: uniqueWalletsData, isLoading: uniqueWalletsLoading } = useUniqueWallets(LZAR_CONTRACT)
   const { data: weeklyPaymentsData, isLoading: weeklyPaymentsLoading } = useMoralisWeeklyPayments(LZAR_CONTRACT, METHOD_ID)
-  const {data: tokenHoldersData, isLoading: tokenHoldersLoading} = useMoralisTokenHolders(LZAR_CONTRACT)
+  const {data: tokenHoldersData, isLoading: tokenHoldersLoading, error: tokenHoldersError} = useMoralisTokenHolders(LZAR_CONTRACT)
 
   // Mutations
   const refreshCumulativeGrowth = useRefreshCumulativeGrowth()
@@ -162,7 +162,7 @@ export default function LZARPage() {
               value={
                 tokenHoldersLoading 
                   ? "Loading..." 
-                  : moralisTokenError 
+                  : tokenHoldersError 
                   ? "Error loading data"
                   : `${Number(
                       Array.isArray(holdersDisplay)
@@ -171,29 +171,17 @@ export default function LZARPage() {
                     ).toLocaleString()} LZAR`
               } 
               subtitle={
-                moralisTokenError 
+                tokenHoldersError 
                   ? "Error loading data" 
-                  : moralisTokenLoading 
+                  : tokenHoldersLoading 
                   ? "Fetching from blockchain..."
                   : "Live from blockchain"
               } 
             />
             <MetricCard 
               title="Contract Address" 
-              value={
-                moralisTokenLoading 
-                  ? "Loading..." 
-                  : moralisTokenError 
-                  ? "Error loading data"
-                  : `${LZAR_CONTRACT.slice(0,8)}...${LZAR_CONTRACT.slice(-6)}`
-              } 
-              subtitle={
-                moralisTokenError 
-                  ? "Error loading data" 
-                  : moralisTokenLoading 
-                  ? "Fetching from blockchain..."
-                  : "Token Contract address"
-              }
+              value={`${LZAR_CONTRACT.slice(0,8)}...${LZAR_CONTRACT.slice(-6)}`}
+              subtitle={"Token Contract address"}
             >
               <Button onClick={() => copyToClipboard(LZAR_CONTRACT)} variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
