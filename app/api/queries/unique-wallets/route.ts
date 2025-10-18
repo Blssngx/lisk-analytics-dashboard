@@ -4,10 +4,12 @@ import { WalletDataProcessor } from "@/lib/services/wallet-data-processor";
 import { NextRequest, NextResponse } from "next/server";
 import { EvmChain } from "@moralisweb3/common-evm-utils";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
 	try {
-		const body = await request.json().catch(() => ({} as any));
-		const contractAddress: string | undefined = body?.contractAddress;
+		const url = new URL(request.url);
+		const searchParams = url.searchParams;
+		const contractAddress: string | undefined =
+			searchParams.get("contractAddress") || undefined;
 
 		if (!contractAddress) {
 			return NextResponse.json({ error: "contractAddress is required" }, { status: 400 });

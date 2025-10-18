@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { MetricCard } from "@/components/metric-card";
 import { ChartCard } from "@/components/chart-card";
@@ -24,8 +24,10 @@ import {
 	useRefreshTokenHolders,
 } from "@/hooks/use-moralis-queries";
 
-export default function LZARPage({ params }: Readonly<{ params: Readonly<{ symbol: string }> }>) {
-	const { symbol } = params;
+export default function LZARPage({
+	params,
+}: Readonly<{ params: Promise<Readonly<{ symbol: string }>> }>) {
+	const { symbol } = React.use(params);
 
 	let CONTRACT_ADDRESS = "";
 	const METHOD_ID = "0xa9059cbb";
@@ -46,7 +48,7 @@ export default function LZARPage({ params }: Readonly<{ params: Readonly<{ symbo
 		data: tokenData,
 		isLoading: tokenLoading,
 		error: tokenError,
-	} = useTokenBySymbol("LZAR");
+	} = useTokenBySymbol(symbol.toUpperCase());
 	const tokenId = tokenData?.id || "";
 
 	// Only run these queries when we have a valid tokenId
