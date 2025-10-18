@@ -24,10 +24,22 @@ import {
 	useRefreshTokenHolders,
 } from "@/hooks/use-moralis-queries";
 
-export default function LZARPage() {
-	const LZAR_CONTRACT = "0x7b7047c49eaf68b8514a20624773ca620e2cd4a3";
-	const LUSD_CONTRACT = "0x2A0FA5d670DEb472c1a72977b75Ba53D1E6FAB72";
+export default function LZARPage({ params }: Readonly<{ params: Readonly<{ symbol: string }> }>) {
+	const { symbol } = params;
+
+	let CONTRACT_ADDRESS = "";
 	const METHOD_ID = "0xa9059cbb";
+
+	switch (symbol.toUpperCase()) {
+		case "LZAR":
+			CONTRACT_ADDRESS = "0x7b7047c49eaf68b8514a20624773ca620e2cd4a3";
+			break;
+		case "LUSD":
+			CONTRACT_ADDRESS = "0x2A0FA5d670DEb472c1a72977b75Ba53D1E6FAB72";
+			break;
+		default:
+			CONTRACT_ADDRESS = "";
+	}
 
 	// REST API cached data
 	const {
@@ -78,19 +90,21 @@ export default function LZARPage() {
 		try {
 			switch (queryType) {
 				case "cumulativeGrowth":
-					await refreshCumulativeGrowth.mutateAsync({ contractAddress: LZAR_CONTRACT });
+					await refreshCumulativeGrowth.mutateAsync({
+						contractAddress: CONTRACT_ADDRESS,
+					});
 					break;
 				case "uniqueWallets":
-					await refreshUniqueWallets.mutateAsync({ contractAddress: LZAR_CONTRACT });
+					await refreshUniqueWallets.mutateAsync({ contractAddress: CONTRACT_ADDRESS });
 					break;
 				case "weeklyPayments":
 					await refreshWeeklyPayments.mutateAsync({
-						contractAddress: LZAR_CONTRACT,
+						contractAddress: CONTRACT_ADDRESS,
 						methodId: METHOD_ID,
 					});
 					break;
 				case "tokenHolders":
-					await refreshTokenHolders.mutateAsync({ contractAddress: LZAR_CONTRACT });
+					await refreshTokenHolders.mutateAsync({ contractAddress: CONTRACT_ADDRESS });
 					break;
 			}
 		} finally {
@@ -102,13 +116,13 @@ export default function LZARPage() {
 		setLoadingStates((prev) => ({ ...prev, allQueries: true }));
 		try {
 			await Promise.all([
-				refreshCumulativeGrowth.mutateAsync({ contractAddress: LZAR_CONTRACT }),
-				refreshUniqueWallets.mutateAsync({ contractAddress: LZAR_CONTRACT }),
+				refreshCumulativeGrowth.mutateAsync({ contractAddress: CONTRACT_ADDRESS }),
+				refreshUniqueWallets.mutateAsync({ contractAddress: CONTRACT_ADDRESS }),
 				refreshWeeklyPayments.mutateAsync({
-					contractAddress: LZAR_CONTRACT,
+					contractAddress: CONTRACT_ADDRESS,
 					methodId: METHOD_ID,
 				}),
-				refreshTokenHolders.mutateAsync({ contractAddress: LZAR_CONTRACT }),
+				refreshTokenHolders.mutateAsync({ contractAddress: CONTRACT_ADDRESS }),
 			]);
 		} finally {
 			setLoadingStates((prev) => ({ ...prev, allQueries: false }));
@@ -170,10 +184,10 @@ export default function LZARPage() {
 					/>
 					<MetricCard
 						title="Contract Address"
-						value={`${LZAR_CONTRACT.slice(0, 8)}...${LZAR_CONTRACT.slice(-6)}`}
+						value={`${CONTRACT_ADDRESS.slice(0, 8)}...${CONTRACT_ADDRESS.slice(-6)}`}
 						subtitle={"Token Contract address"}>
 						<Button
-							onClick={() => copyToClipboard(LZAR_CONTRACT)}
+							onClick={() => copyToClipboard(CONTRACT_ADDRESS)}
 							variant="ghost"
 							size="sm"
 							className="text-gray-400 hover:text-white">
