@@ -1,20 +1,8 @@
 {
  "crons": [
   {
-   "path": "/api/queries/holders?contractAddress=0x7b7047c49eaf68b8514a20624773ca620e2cd4a3",
+   "path": "/api/cron/sync-moralis?contractAddress=0x7b7047c49eaf68b8514a20624773ca620e2cd4a3",
    "schedule": "0 1 * * 1"
-  },
-  {
-   "path": "/api/queries/cumulative-growth?contractAddress=0x7b7047c49eaf68b8514a20624773ca620e2cd4a3",
-   "schedule": "10 1 * * 1"
-  },
-  {
-   "path": "/api/queries/unique-wallets?contractAddress=0x7b7047c49eaf68b8514a20624773ca620e2cd4a3",
-   "schedule": "20 1 * * 1"
-  },
-  {
-   "path": "/api/queries/weekly-payments?contractAddress=0x7b7047c49eaf68b8514a20624773ca620e2cd4a3",
-   "schedule": "30 1 * * 1"
   }
  ]
 }
