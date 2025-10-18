@@ -9,15 +9,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { WeeklyPayments } from "@/lib/generated/prisma"
 
 export const description = "Weekly interest payments"
-
-type WeeklyPaymentsRow = {
-  weekStartDate?: string
-  totalPaymentsAmount?: number
-  paymentCount?: number
-  averagePayment?: number
-}
 
 const chartConfig = {
   date: { label: "Time" },
@@ -26,14 +20,14 @@ const chartConfig = {
   average: { label: "Average Payment", color: "var(--chart-3)" },
 } satisfies ChartConfig
 
-export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow[], symbol: string }) {
+export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPayments[], symbol: string }) {
   const [timeRange, setTimeRange] = React.useState("all")
   const [activeChart, setActiveChart] = React.useState<"combined" | "amounts" | "payments" | "average">("combined")
 
   const safeData = Array.isArray(data) ? data : []
 
   function formatAmount(amount: number): number {
-    if (!amount) return 0 
+    if (!amount) return 0
     if (amount >= 0.001) return Number(amount.toFixed(6))
     else {
       const val = 18 - Number(String(amount).split('e')[1])
@@ -45,23 +39,23 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
   const items = React.useMemo(() => {
     // First, process all data and group by week
     const weeklyData = new Map<string, { date: Date, count: number, total: number, transactions: Array<{count: number, total: number}> }>()
-    
+
     safeData.forEach((i) => {
       const date = new Date(i.weekStartDate || "")
       if (isNaN(date.getTime())) return
-      
+
       // Create a consistent week key using the start of the week (Monday)
       const weekStart = new Date(date)
       const dayOfWeek = weekStart.getDay()
       const diff = weekStart.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1) // Adjust for Monday start
       weekStart.setDate(diff)
       weekStart.setHours(0, 0, 0, 0) // Reset time to start of day
-      
+
       const weekKey = weekStart.toISOString().split('T')[0] // Use YYYY-MM-DD as key
-      
+
       const count = Number(i.paymentCount ?? 0)
       const total = Number(i.totalPaymentsAmount ?? 0)
-      
+
       if (!weeklyData.has(weekKey)) {
         weeklyData.set(weekKey, {
           date: weekStart,
@@ -70,11 +64,11 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
           transactions: []
         })
       }
-      
+
       const existing = weeklyData.get(weekKey)!
       existing.transactions.push({ count, total })
     })
-    
+
     // Consolidate each week's data by taking the maximum values
     // (since actual data will be > 0 and zero entries will be 0)
     return Array.from(weeklyData.values())
@@ -83,7 +77,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
         const count = transactions.reduce((sum, t) => sum + t.count, 0)
         const total = transactions.reduce((sum, t) => sum + t.total, 0)
         const avg = count > 0 ? total / count : 0
-        
+
         return { date, count, total, avg }
       })
       .filter(item => item.count > 0 || item.total > 0) // Remove weeks with no activity
@@ -116,7 +110,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
     startDate.setDate(startDate.getDate() - daysToSubtract)
     return rechartsData.filter((item) => new Date(item.date) >= startDate)
   }, [rechartsData, maxDate, timeRange])
-  
+
   const legendStats = React.useMemo(() => {
     const payments = Number(filteredData.reduce((acc, cur) => cur.payments + acc, 0).toFixed(2))
     const totalAmount = Number(filteredData.reduce((acc, cur) => cur.amounts + acc, 0).toFixed(2))
@@ -154,14 +148,14 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
                 return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
               }}
             />
-            <YAxis 
+            <YAxis
               yAxisId="left"
               orientation="left"
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => `${Number(value).toFixed(0)}`}
             />
-            <YAxis 
+            <YAxis
               yAxisId="right"
               orientation="right"
               tickLine={false}
@@ -190,10 +184,10 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
                 />
               }
             />
-            <Bar 
+            <Bar
               yAxisId="left"
-              dataKey="amounts" 
-              fill="var(--color-amounts)" 
+              dataKey="amounts"
+              fill="var(--color-amounts)"
               radius={[2, 2, 0, 0]}
               fillOpacity={0.8}
             />
@@ -253,9 +247,9 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
                 />
               }
             />
-            <Bar 
-              dataKey="amounts" 
-              fill="var(--color-amounts)" 
+            <Bar
+              dataKey="amounts"
+              fill="var(--color-amounts)"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>
@@ -305,9 +299,9 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
                 />
               }
             />
-            <Bar 
-              dataKey="payments" 
-              fill="var(--color-payments)" 
+            <Bar
+              dataKey="payments"
+              fill="var(--color-payments)"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>
@@ -394,7 +388,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
               Overview
             </div>
           </button>
-          
+
           <button
             onClick={() => setActiveChart("amounts")}
             title={`a${symbol} stands for "atto${symbol}" a unit equal to 1e-18 of a ${symbol}`}
@@ -441,7 +435,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
             </div>
           </button>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {[
             { key: "all", label: "All" },
@@ -466,7 +460,7 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
         <ChartContainer config={chartConfig} className="aspect-auto h-[50vh] w-full">
           {renderChart()}
         </ChartContainer>
-        
+
         {activeChart === "combined" && (
           <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -479,8 +473,8 @@ export function WeeklyPaymentsChart({ data, symbol }: { data?: WeeklyPaymentsRow
             </div>
           </div>
         )}
-        
-       
+
+
       </div>
     </>
   )
