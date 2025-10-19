@@ -2,8 +2,8 @@
 import React from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
-import { Alert } from "./ui/alert";
+import { AlertCircleIcon, Play } from "lucide-react";
+import { Alert, AlertTitle } from "./ui/alert";
 
 interface MetricCardProps {
 	title: string;
@@ -19,7 +19,7 @@ export function MetricCard({
 	value,
 	subtitle,
 	isLoading,
-	error,
+	error = "Failed to load data",
 	children,
 }: Readonly<MetricCardProps>) {
 	return (
@@ -38,7 +38,14 @@ export function MetricCard({
 				{subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
 				{!!children && children}
 			</CardContent>
-			<CardFooter>{error && <Alert variant="destructive">{error}</Alert>}</CardFooter>
+			<CardFooter>
+				{error && (
+					<Alert variant={"destructive"}>
+						<AlertCircleIcon className="h-4 w-4 mr-2" />
+						<AlertTitle>{error}</AlertTitle>
+					</Alert>
+				)}
+			</CardFooter>
 		</Card>
 	);
 }

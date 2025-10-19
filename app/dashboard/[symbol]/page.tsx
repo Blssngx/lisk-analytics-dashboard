@@ -24,7 +24,7 @@ import {
 	useRefreshTokenHolders,
 } from "@/hooks/use-moralis-queries";
 
-export default function LZARPage({
+export default function SymbolPage({
 	params,
 }: Readonly<{ params: Promise<Readonly<{ symbol: string }>> }>) {
 	const { symbol } = React.use(params);
@@ -44,11 +44,7 @@ export default function LZARPage({
 	}
 
 	// REST API cached data
-	const {
-		data: tokenData,
-		isLoading: tokenLoading,
-		error: tokenError,
-	} = useTokenBySymbol(symbol.toUpperCase());
+	const { data: tokenData, isLoading: tokenLoading } = useTokenBySymbol(symbol.toUpperCase());
 	const tokenId = tokenData?.id || "";
 
 	// Only run these queries when we have a valid tokenId
@@ -152,11 +148,12 @@ export default function LZARPage({
 									<TrendingUp className="h-4 w-4 text-white" />
 								</div>
 								<h1 className="text-3xl font-bold text-white">
-									LZAR Token Analytics
+									{symbol.toUpperCase()} Token Analytics
 								</h1>
 							</div>
 							<p className="text-gray-400 mt-1">
-								Comprehensive analytics for LZAR token on the Lisk network
+								Comprehensive analytics for {symbol.toUpperCase()} token on the Lisk
+								network
 							</p>
 						</div>
 						<div className="flex gap-2">
@@ -176,8 +173,11 @@ export default function LZARPage({
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<MetricCard
 						title="Total Supply"
-						value={tokenHoldersData?.totalSupply || "N/A"}
+						value={`${
+							tokenHoldersData ? tokenHoldersData.totalSupply.toLocaleString() : "N/A"
+						} ${symbol.toUpperCase()}`}
 						error={tokenHoldersError ? "Failed to load total supply" : undefined}
+						isLoading={tokenHoldersLoading || tokenLoading}
 						subtitle={
 							tokenHoldersLoading
 								? "Fetching from blockchain..."
@@ -202,21 +202,31 @@ export default function LZARPage({
 				<div className="space-y-6">
 					<ChartCard
 						title="Transactions"
-						description="Cumulative transaction count and total volume for LZAR over time."
-						isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading}
+						description={`Cumulative transaction count and total volume for ${symbol.toUpperCase()} over time.`}
+						isLoading={cumulativeGrowthLoading}
+						error={
+							cumulativeGrowthError
+								? "Failed to load cumulative growth data"
+								: undefined
+						}
 						onRunQuery={() => runQuery("cumulativeGrowth")}
 						cooldownKey="cooldown:cumulative-growth">
 						<ChartAreaInteractive
 							data={cumulativeGrowthData}
-							isLoading={loadingStates.cumulativeGrowth || cumulativeGrowthLoading}
-							symbol="LZAR"
+							isLoading={cumulativeGrowthLoading}
+							symbol={symbol.toUpperCase()}
 						/>
 					</ChartCard>
 					{uniqueWalletsData && (
 						<ChartCard
 							title="Unique Wallets"
-							description="Unique wallets and new wallets over time for LZAR."
-							isLoading={loadingStates.uniqueWallets || uniqueWalletsLoading}
+							description={`Unique wallets and new wallets over time for ${symbol.toUpperCase()}.`}
+							isLoading={uniqueWalletsLoading}
+							error={
+								uniqueWalletsError
+									? "Failed to load unique wallets data"
+									: undefined
+							}
 							onRunQuery={() => runQuery("uniqueWallets")}
 							cooldownKey="cooldown:unique-wallets">
 							<UniqueWalletsDisplay data={uniqueWalletsData} />
@@ -226,21 +236,28 @@ export default function LZARPage({
 					<ChartCard
 						title="Weekly Interest Payments"
 						description="Weekly interest payments: toggle between payment count, total amount paid and average payments per week."
-						isLoading={loadingStates.weeklyPayments || weeklyPaymentsLoading}
+						isLoading={weeklyPaymentsLoading}
+						error={
+							weeklyPaymentsError ? "Failed to load weekly payments data" : undefined
+						}
 						onRunQuery={() => runQuery("weeklyPayments")}
 						cooldownKey="cooldown:weekly-payments">
-						<WeeklyPaymentsChart data={weeklyPaymentsData} symbol="LZAR" />
+						<WeeklyPaymentsChart
+							data={weeklyPaymentsData}
+							symbol={symbol.toUpperCase()}
+						/>
 					</ChartCard>
 
 					<ChartCard
 						title="Token Holders Distribution"
 						description="Distribution of token holders by balance size categories."
-						isLoading={loadingStates.tokenHolders}
+						isLoading={tokenHoldersLoading}
+						error={tokenHoldersError ? "Failed to load token holders data" : undefined}
 						onRunQuery={() => runQuery("tokenHolders")}
 						cooldownKey="cooldown:token-holders">
 						<TokenHoldersPieChart
 							data={tokenHoldersData}
-							symbol="LZAR"
+							symbol={symbol.toUpperCase()}
 							isLoading={tokenHoldersLoading}
 						/>
 					</ChartCard>
