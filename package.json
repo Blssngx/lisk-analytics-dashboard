@@ -6,7 +6,15 @@
     "build": "pnpm dlx prisma generate && next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "cache:monitor": "node scripts/cache-monitor.js",
+    "cache:clear": "node scripts/cache-clear-simple.js",
+    "cache:health": "node scripts/cache-health-simple.js",
+    "cache:stats": "node scripts/cache-stats-simple.js",
+    "db:generate": "pnpm dlx prisma generate",
+    "db:migrate": "pnpm dlx prisma migrate dev",
+    "db:seed": "node scripts/seed-tokens.js",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@apollo/client": "^3.13.9",
@@ -55,6 +63,7 @@
     "cmdk": "1.0.4",
     "d3": "^7.9.0",
     "date-fns": "4.1.0",
+    "dotenv": "^17.2.3",
     "embla-carousel-react": "8.5.1",
     "ethers": "^6.15.0",
     "geist": "latest",
