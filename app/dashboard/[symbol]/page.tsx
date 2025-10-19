@@ -34,10 +34,10 @@ export default function LZARPage({
 
 	switch (symbol.toUpperCase()) {
 		case "LZAR":
-			CONTRACT_ADDRESS = "0x7b7047c49eaf68b8514a20624773ca620e2cd4a3";
+			CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_LZAR_CONTRACT_ADDRESS || "";
 			break;
 		case "LUSD":
-			CONTRACT_ADDRESS = "0x2A0FA5d670DEb472c1a72977b75Ba53D1E6FAB72";
+			CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_LUSD_CONTRACT_ADDRESS || "";
 			break;
 		default:
 			CONTRACT_ADDRESS = "";
