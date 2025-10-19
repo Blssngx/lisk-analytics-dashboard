@@ -25,10 +25,11 @@ const requestDuplicator = new RequestDuplicator();
 
 // API functions
 const fetchMoralisTokenData = async (contractAddress: string): Promise<MoralisTokenData> => {
-	const response = await fetch(`/api/queries/token-data?contractAddress=${contractAddress}`, {
+	const params = new URLSearchParams({ contractAddress });
+	const response = await fetch(`/api/queries/token-data?${params.toString()}`, {
 		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
 	});
 
@@ -43,15 +44,16 @@ const fetchMoralisTransactions = async (
 	contractAddress: string,
 	limit: number = 100,
 ): Promise<MoralisTransaction[]> => {
-	const response = await fetch(
-		`/api/queries/transactions?contractAddress=${contractAddress}&limit=${limit}`,
-		{
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
+	const params = new URLSearchParams({
+		contractAddress,
+		limit: limit.toString(),
+	});
+	const response = await fetch(`/api/queries/transactions?${params.toString()}`, {
+		method: "GET",
+		headers: {
+			Accept: "application/json",
 		},
-	);
+	});
 
 	if (!response.ok) {
 		throw new Error("Failed to fetch transactions");
@@ -64,15 +66,16 @@ const fetchMoralisTransfers = async (
 	contractAddress: string,
 	limit: number = 100,
 ): Promise<MoralisTransfer[]> => {
-	const response = await fetch(
-		`/api/queries/transfers?contractAddress=${contractAddress}&limit=${limit}`,
-		{
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
+	const params = new URLSearchParams({
+		contractAddress,
+		limit: limit.toString(),
+	});
+	const response = await fetch(`/api/queries/transfers?${params.toString()}`, {
+		method: "GET",
+		headers: {
+			Accept: "application/json",
 		},
-	);
+	});
 
 	if (!response.ok) {
 		throw new Error("Failed to fetch transfers");
@@ -82,15 +85,13 @@ const fetchMoralisTransfers = async (
 };
 
 const fetchCumulativeGrowth = async (contractAddress: string): Promise<any> => {
-	const response = await fetch(
-		`/api/queries/cumulative-growth?contractAddress=${contractAddress}`,
-		{
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
+	const params = new URLSearchParams({ contractAddress });
+	const response = await fetch(`/api/queries/cumulative-growth?${params.toString()}`, {
+		method: "GET",
+		headers: {
+			Accept: "application/json",
 		},
-	);
+	});
 
 	if (!response.ok) {
 		const errorData = await response.json().catch(() => ({}));
@@ -104,10 +105,11 @@ const fetchCumulativeGrowth = async (contractAddress: string): Promise<any> => {
 };
 
 const fetchUniqueWallets = async (contractAddress: string): Promise<any> => {
-	const response = await fetch(`/api/queries/unique-wallets?contractAddress=${contractAddress}`, {
+	const params = new URLSearchParams({ contractAddress });
+	const response = await fetch(`/api/queries/unique-wallets?${params.toString()}`, {
 		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
 	});
 
@@ -123,15 +125,13 @@ const fetchUniqueWallets = async (contractAddress: string): Promise<any> => {
 };
 
 const fetchWeeklyPayments = async (contractAddress: string, methodId: string): Promise<any> => {
-	const response = await fetch(
-		`/api/queries/weekly-payments?contractAddress=${contractAddress}&methodId=${methodId}`,
-		{
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
+	const params = new URLSearchParams({ contractAddress, methodId });
+	const response = await fetch(`/api/queries/weekly-payments?${params.toString()}`, {
+		method: "GET",
+		headers: {
+			Accept: "application/json",
 		},
-	);
+	});
 
 	if (!response.ok) {
 		const errorData = await response.json().catch(() => ({}));
@@ -144,10 +144,11 @@ const fetchWeeklyPayments = async (contractAddress: string, methodId: string): P
 	return result.data || result; // Return data property if it exists, otherwise return the whole result
 };
 const fetchTokenHolders = async (contractAddress: string): Promise<any> => {
-	const response = await fetch(`/api/queries/holders?contractAddress=${contractAddress}`, {
+	const params = new URLSearchParams({ contractAddress });
+	const response = await fetch(`/api/queries/holders?${params.toString()}`, {
 		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
 	});
 
@@ -262,12 +263,13 @@ export const useTokenMetadata = (contractAddress: string) => {
 			requestDuplicator.deduplicate(
 				`token-metadata:${contractAddress}`,
 				async (): Promise<MoralisTokenData> => {
+					const params = new URLSearchParams({ contractAddress });
 					const response = await fetch(
-						`/api/moralis/token-metadata?contractAddress=${contractAddress}`,
+						`/api/moralis/token-metadata?${params.toString()}`,
 						{
 							method: "GET",
 							headers: {
-								"Content-Type": "application/json",
+								Accept: "application/json",
 							},
 						},
 					);
@@ -295,15 +297,13 @@ export const useRefreshTokenData = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-token-data:${contractAddress}`,
 				async () => {
-					const response = await fetch(
-						`/api/queries/token-data?contractAddress=${contractAddress}`,
-						{
-							method: "GET",
-							headers: {
-								"Content-Type": "application/json",
-							},
+					const params = new URLSearchParams({ contractAddress });
+					const response = await fetch(`/api/queries/token-data?${params.toString()}`, {
+						method: "GET",
+						headers: {
+							Accept: "application/json",
 						},
-					);
+					});
 
 					if (!response.ok) {
 						throw new Error("Failed to refresh token data");
@@ -337,12 +337,13 @@ export const useRefreshCumulativeGrowth = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-cumulative-growth:${contractAddress}`,
 				async () => {
+					const params = new URLSearchParams({ contractAddress });
 					const response = await fetch(
-						`/api/queries/cumulative-growth?contractAddress=${contractAddress}`,
+						`/api/queries/cumulative-growth?${params.toString()}`,
 						{
 							method: "GET",
 							headers: {
-								"Content-Type": "application/json",
+								Accept: "application/json",
 							},
 						},
 					);
@@ -384,12 +385,13 @@ export const useRefreshUniqueWallets = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-unique-wallets:${contractAddress}`,
 				async () => {
+					const params = new URLSearchParams({ contractAddress });
 					const response = await fetch(
-						`/api/queries/unique-wallets?contractAddress=${contractAddress}`,
+						`/api/queries/unique-wallets?${params.toString()}`,
 						{
 							method: "GET",
 							headers: {
-								"Content-Type": "application/json",
+								Accept: "application/json",
 							},
 						},
 					);
@@ -436,12 +438,13 @@ export const useRefreshWeeklyPayments = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-weekly-payments:${contractAddress}:${methodId}`,
 				async () => {
+					const params = new URLSearchParams({ contractAddress, methodId });
 					const response = await fetch(
-						`/api/queries/weekly-payments?contractAddress=${contractAddress}&methodId=${methodId}`,
+						`/api/queries/weekly-payments?${params.toString()}`,
 						{
 							method: "GET",
 							headers: {
-								"Content-Type": "application/json",
+								Accept: "application/json",
 							},
 						},
 					);
@@ -485,15 +488,13 @@ export const useRefreshTokenHolders = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-token-holders:${contractAddress}`,
 				async () => {
-					const response = await fetch(
-						`/api/queries/holders?contractAddress=${contractAddress}`,
-						{
-							method: "GET",
-							headers: {
-								"Content-Type": "application/json",
-							},
+					const params = new URLSearchParams({ contractAddress });
+					const response = await fetch(`/api/queries/holders?${params.toString()}`, {
+						method: "GET",
+						headers: {
+							Accept: "application/json",
 						},
-					);
+					});
 
 					if (!response.ok) {
 						throw new Error("Failed to refresh token holders data");
