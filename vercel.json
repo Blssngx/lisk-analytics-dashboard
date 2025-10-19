@@ -1,7 +1,7 @@
 {
  "crons": [
   {
-   "path": "/api/cron/sync-moralis?contractAddress=0x7b7047c49eaf68b8514a20624773ca620e2cd4a3",
+   "path": "/api/cron/sync-moralis",
    "schedule": "0 1 * * 1"
   }
  ]
