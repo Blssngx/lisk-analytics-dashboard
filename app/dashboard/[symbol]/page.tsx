@@ -29,19 +29,13 @@ export default function SymbolPage({
 }: Readonly<{ params: Promise<Readonly<{ symbol: string }>> }>) {
 	const { symbol } = React.use(params);
 
-	let CONTRACT_ADDRESS = "";
+	const CONTRACT_ADDRESSES: { [key: string]: string } = {
+		LZAR: process.env.NEXT_PUBLIC_LZAR_CONTRACT_ADDRESS || "",
+		LUSD: process.env.NEXT_PUBLIC_LUSD_CONTRACT_ADDRESS || "",
+	};
 	const METHOD_ID = "0xa9059cbb";
 
-	switch (symbol.toUpperCase()) {
-		case "LZAR":
-			CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_LZAR_CONTRACT_ADDRESS || "";
-			break;
-		case "LUSD":
-			CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_LUSD_CONTRACT_ADDRESS || "";
-			break;
-		default:
-			CONTRACT_ADDRESS = "";
-	}
+	const CONTRACT_ADDRESS = CONTRACT_ADDRESSES[symbol.toUpperCase()] || "";
 
 	// REST API cached data
 	const { data: tokenData, isLoading: tokenLoading } = useTokenBySymbol(symbol.toUpperCase());
