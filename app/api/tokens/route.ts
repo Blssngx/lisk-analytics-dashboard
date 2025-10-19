@@ -1,34 +1,33 @@
+// Example: Refactored tokens route with improved caching
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
-import { redisClient } from "@/lib/redis";
+import { withCacheFallback } from "@/lib/cache-middleware";
+import { CacheService, CACHE_TTL } from "@/lib/services/cache-service";
 
 export async function GET() {
-	const cacheKey = "tokens";
-
 	try {
-		// retrieve all tokens from redis cache
-		const cachedTokens = await redisClient.get(cacheKey);
-		if (cachedTokens) {
-			// If found in cache, return cached tokens
-			return NextResponse.json(JSON.parse(cachedTokens));
-		}
-		// If not in cache, fetch from database
-		let tokens = await TokenDataService.getAllTokens();
+		const result = await withCacheFallback(
+			// Cache operation
+			() => CacheService.getTokens(),
+			// Fallback operation
+			async () => {
+				const tokens = await TokenDataService.getAllTokens();
 
-		// Convert Decimal values to strings for JSON serialization
-		const serializedTokens = tokens.map((token) => ({
-			...token,
-			totalSupply: token.totalSupply?.toString(),
-			marketCap: token.marketCap?.toString(),
-		}));
+				// Convert Decimal values to strings for JSON serialization
+				return tokens.map((token) => ({
+					...token,
+					totalSupply: token.totalSupply?.toString(),
+					marketCap: token.marketCap?.toString(),
+				}));
+			},
+			// Cache set operation
+			(data) => CacheService.setTokens(data, CACHE_TTL.LONG),
+		);
 
-		// Store in cache for future requests
-		await redisClient.set(cacheKey, JSON.stringify(serializedTokens), {
-			EX: 60 * 5, // Cache for 5 minutes
-		});
-		return NextResponse.json(serializedTokens);
+		return NextResponse.json(result);
 	} catch (error) {
 		console.error("Error fetching tokens:", error);
+
 		return NextResponse.json({ error: "Failed to fetch tokens" }, { status: 500 });
 	}
 }
@@ -52,6 +51,9 @@ export async function POST(request: NextRequest) {
 			decimals,
 			totalSupply,
 		});
+
+		// Invalidate tokens cache since we added a new token
+		await CacheService.invalidateAllCaches();
 
 		return NextResponse.json(token, { status: 201 });
 	} catch (error) {

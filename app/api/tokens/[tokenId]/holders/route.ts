@@ -1,6 +1,7 @@
-import { redisClient } from "@/lib/redis";
-import { TokenDataService } from "@/lib/services/token-data-service";
 import { NextRequest, NextResponse } from "next/server";
+import { TokenDataService } from "@/lib/services/token-data-service";
+import { withCacheFallback } from "@/lib/cache-middleware";
+import { CacheService, CACHE_TTL } from "@/lib/services/cache-service";
 
 export async function GET(
 	request: NextRequest,
@@ -8,31 +9,36 @@ export async function GET(
 ) {
 	try {
 		const { tokenId } = await params;
-		const cacheKey = `token_holders_${tokenId}`;
 
 		if (!tokenId) {
 			return NextResponse.json({ error: "Token ID is required" }, { status: 400 });
 		}
 
-		// Fetch token holders data from the service
-		const cachedHolders = await redisClient.get(cacheKey);
-		if (cachedHolders) {
-			return NextResponse.json(JSON.parse(cachedHolders));
-		}
+		const result = await withCacheFallback(
+			// Cache operation
+			() => CacheService.getTokenHolders(tokenId),
+			// Fallback operation
+			async () => {
+				const holdersData = await TokenDataService.getTokenHolders(tokenId);
 
-		const holdersData = await TokenDataService.getTokenHolders(tokenId);
+				if (!holdersData) {
+					throw new Error("Token holders data not found");
+				}
 
-		if (!holdersData) {
+				return holdersData;
+			},
+			// Cache set operation
+			(data) => CacheService.setTokenHolders(tokenId, data, CACHE_TTL.MEDIUM),
+		);
+
+		return NextResponse.json(result);
+	} catch (error) {
+		console.error("Token holders fetch error:", error);
+
+		if (error instanceof Error && error.message === "Token holders data not found") {
 			return NextResponse.json({ error: "Token holders data not found" }, { status: 404 });
 		}
 
-		// Cache the holders data for future requests
-		await redisClient.set(cacheKey, JSON.stringify(holdersData), {
-			EX: 60 * 5, // Cache for 5 minutes
-		});
-		return NextResponse.json(holdersData);
-	} catch (error) {
-		console.error("Token holders fetch error:", error);
 		return NextResponse.json(
 			{
 				error: "Failed to fetch token holders data",

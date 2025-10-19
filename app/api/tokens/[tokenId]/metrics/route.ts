@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
 import { PrismaClient } from "@/lib/generated/prisma";
-import { redisClient } from "@/lib/redis";
+import { withCacheFallback } from "@/lib/cache-middleware";
+import { CacheService, CACHE_TTL } from "@/lib/services/cache-service";
 
 const prisma = new PrismaClient();
 
@@ -11,7 +12,6 @@ export async function GET(
 ) {
 	try {
 		const { tokenId } = await params;
-		const cacheKey = `token_metrics_${tokenId}`;
 
 		// Validate token ID against values in the database
 		const validTokenIds = await prisma.token
@@ -22,7 +22,7 @@ export async function GET(
 			return NextResponse.json(
 				{
 					error: "Invalid token ID",
-					validTokenIds: validTokenIds.map(([id]) => ({
+					validTokenIds: validTokenIds.map((id) => ({
 						id,
 					})),
 				},
@@ -30,28 +30,26 @@ export async function GET(
 			);
 		}
 
-		// fetch from cache
-		const cachedMetrics = await redisClient.get(cacheKey);
-		if (cachedMetrics) {
-			return NextResponse.json(JSON.parse(cachedMetrics));
-		}
+		const result = await withCacheFallback(
+			// Cache operation
+			() => CacheService.getTokenMetrics(tokenId),
+			// Fallback operation
+			async () => {
+				// Fetch all cumulative metrics data for the token without any filtering
+				const metrics = await TokenDataService.getAllCumulativeMetrics(tokenId);
 
-		// Fetch all cumulative metrics data for the token without any filtering
-		const metrics = await TokenDataService.getAllCumulativeMetrics(tokenId);
+				// Convert Decimal values to strings for JSON serialization
+				return metrics.map((metric) => ({
+					...metric,
+					cumulativeTxAmount: metric.cumulativeTxAmount?.toString(),
+					dailyTxAmount: metric.dailyTxAmount?.toString(),
+				}));
+			},
+			// Cache set operation
+			(data) => CacheService.setTokenMetrics(tokenId, data, CACHE_TTL.MEDIUM),
+		);
 
-		// Convert Decimal values to strings for JSON serialization
-		const serializedMetrics = metrics.map((metric) => ({
-			...metric,
-			cumulativeTxAmount: metric.cumulativeTxAmount?.toString(),
-			dailyTxAmount: metric.dailyTxAmount?.toString(),
-		}));
-
-		// Cache the metrics data for future requests
-		await redisClient.set(cacheKey, JSON.stringify(serializedMetrics), {
-			EX: 60 * 5, // Cache for 5 minutes
-		});
-
-		return NextResponse.json(serializedMetrics);
+		return NextResponse.json(result);
 	} catch (error) {
 		console.error("Error fetching cumulative metrics:", error);
 		return NextResponse.json({ error: "Failed to fetch metrics" }, { status: 500 });

@@ -1,8 +1,10 @@
 /**
  * Sync API endpoint to refresh all Moralis data for specified contracts
  * Supports syncing specific contracts or all configured contracts
+ * Includes intelligent cache invalidation
  */
 
+import { CacheService } from "@/lib/services/cache-service";
 import { NextResponse, NextRequest } from "next/server";
 
 // Configuration for supported contracts
@@ -116,6 +118,10 @@ export async function GET(request: NextRequest) {
 
 		console.log(`🚀 Starting sync for ${contractsToSync.length} contract(s)`);
 		const overallStartTime = Date.now();
+
+		// Invalidate all caches before sync to ensure fresh data
+		console.log("🧹 Invalidating all caches before sync...");
+		await CacheService.invalidateAllCaches();
 
 		// Execute sync for all contracts
 		const allResults = await Promise.all(
