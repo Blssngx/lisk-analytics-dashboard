@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
 import { PrismaClient } from "@/lib/generated/prisma";
+import { redisClient } from "@/lib/redis";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,7 @@ export async function GET(
 ) {
 	try {
 		const { tokenId } = await params;
+		const cacheKey = `token_metrics_${tokenId}`;
 
 		// Validate token ID against values in the database
 		const validTokenIds = await prisma.token
@@ -28,6 +30,12 @@ export async function GET(
 			);
 		}
 
+		// fetch from cache
+		const cachedMetrics = await redisClient.get(cacheKey);
+		if (cachedMetrics) {
+			return NextResponse.json(JSON.parse(cachedMetrics));
+		}
+
 		// Fetch all cumulative metrics data for the token without any filtering
 		const metrics = await TokenDataService.getAllCumulativeMetrics(tokenId);
 
@@ -37,6 +45,11 @@ export async function GET(
 			cumulativeTxAmount: metric.cumulativeTxAmount?.toString(),
 			dailyTxAmount: metric.dailyTxAmount?.toString(),
 		}));
+
+		// Cache the metrics data for future requests
+		await redisClient.set(cacheKey, JSON.stringify(serializedMetrics), {
+			EX: 60 * 5, // Cache for 5 minutes
+		});
 
 		return NextResponse.json(serializedMetrics);
 	} catch (error) {

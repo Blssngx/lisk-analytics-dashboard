@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
+import { redisClient } from "@/lib/redis";
 
 export async function GET() {
+	const cacheKey = "tokens";
+
 	try {
-		const tokens = await TokenDataService.getAllTokens();
+		// retrieve all tokens from redis cache
+		const cachedTokens = await redisClient.get(cacheKey);
+		if (cachedTokens) {
+			// If found in cache, return cached tokens
+			return NextResponse.json(JSON.parse(cachedTokens));
+		}
+		// If not in cache, fetch from database
+		let tokens = await TokenDataService.getAllTokens();
 
 		// Convert Decimal values to strings for JSON serialization
 		const serializedTokens = tokens.map((token) => ({
@@ -12,6 +22,10 @@ export async function GET() {
 			marketCap: token.marketCap?.toString(),
 		}));
 
+		// Store in cache for future requests
+		await redisClient.set(cacheKey, JSON.stringify(serializedTokens), {
+			EX: 60 * 5, // Cache for 5 minutes
+		});
 		return NextResponse.json(serializedTokens);
 	} catch (error) {
 		console.error("Error fetching tokens:", error);

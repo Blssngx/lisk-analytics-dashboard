@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
 import { PrismaClient } from "@/lib/generated/prisma";
+import { redisClient } from "@/lib/redis";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,7 @@ export async function GET(
 ) {
 	try {
 		const { tokenId } = await params;
+		const cacheKey = `token_payments_${tokenId}`;
 
 		// Validate token ID against values in the database
 		const validTokenIds = await prisma.token
@@ -28,6 +30,12 @@ export async function GET(
 			);
 		}
 
+		// fetch from cache
+		const cachedPayments = await redisClient.get(cacheKey);
+		if (cachedPayments) {
+			return NextResponse.json(JSON.parse(cachedPayments));
+		}
+
 		// Fetch all payment data for the token without any filtering
 		const payments = await TokenDataService.getAllPaymentData(tokenId);
 
@@ -38,6 +46,10 @@ export async function GET(
 			averagePayment: payment.averagePayment?.toString(),
 		}));
 
+		// Cache the payment data for future requests
+		await redisClient.set(cacheKey, JSON.stringify(serializedPayments), {
+			EX: 60 * 5, // Cache for 5 minutes
+		});
 		return NextResponse.json(serializedPayments);
 	} catch (error) {
 		console.error("Error fetching payment data:", error);

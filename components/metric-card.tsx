@@ -18,7 +18,7 @@ export function MetricCard({
 	value,
 	subtitle,
 	isLoading,
-	error = "Failed to load data",
+	error,
 	children,
 }: Readonly<MetricCardProps>) {
 	return (
