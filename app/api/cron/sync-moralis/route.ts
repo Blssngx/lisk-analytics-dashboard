@@ -85,8 +85,7 @@ export async function GET(request: NextRequest) {
 	try {
 		const url = new URL(request.url);
 		const contractParam = url.searchParams.get("contractAddress");
-		// const baseUrl = `${url.protocol}//${url.host}`;
-		const baseUrl = "";
+		const baseUrl = `${url.protocol}//${url.host}`;
 
 		// Determine which contracts to sync
 		let contractsToSync: Array<{ address: string; name?: string }> = [];
