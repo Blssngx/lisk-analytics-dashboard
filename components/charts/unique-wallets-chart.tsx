@@ -10,15 +10,9 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import { DailyUniqueWallets } from "@/lib/generated/prisma/wasm";
+import { useMemo } from "react";
 
 export const description = "Unique wallets over time";
-
-type UniqueWalletsRow = {
-	date?: string;
-	uniqueWalletCount?: number;
-	newWallets?: number;
-	activeWallets?: number;
-};
 
 const chartConfig = {
 	date: { label: "Time" },
@@ -34,7 +28,7 @@ export function UniqueWalletsDisplay({ data }: Readonly<UniqueWalletsDisplayProp
 	const [timeRange, setTimeRange] = React.useState("all");
 	const [activeChart, setActiveChart] = React.useState<"wallets" | "newWallets" | "all">("all");
 
-	const safeData = Array.isArray(data) ? data : [];
+	const safeData: DailyUniqueWallets[] = useMemo(() => (Array.isArray(data) ? data : []), [data]);
 
 	const items = React.useMemo(() => {
 		return safeData
@@ -45,8 +39,8 @@ export function UniqueWalletsDisplay({ data }: Readonly<UniqueWalletsDisplayProp
 				const newWallets = Number(row.newWallets ?? 0);
 				return { date, wallets, newWallets };
 			})
-			.filter(Boolean)
-			.sort((a: any, b: any) => a.date.getTime() - b.date.getTime()) as Array<{
+			.filter((x): x is { date: Date; wallets: number; newWallets: number } => x !== null)
+			.sort((a, b) => a.date.getTime() - b.date.getTime()) as Array<{
 			date: Date;
 			wallets: number;
 			newWallets: number;

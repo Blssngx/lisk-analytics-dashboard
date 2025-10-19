@@ -14,14 +14,6 @@ import { DailyCumulativeMetrics } from "@/lib/generated/prisma/wasm";
 
 export const description = "An interactive area chart";
 
-type CumulativeGrowthRow = {
-	date?: string;
-	cumulativeTxCount?: number;
-	dailyTxCount?: number;
-	cumulativeTxAmount?: number;
-	dailyTxAmount?: number;
-};
-
 const chartConfig = {
 	date: {
 		label: "Time",
@@ -48,7 +40,7 @@ export function ChartAreaInteractive({
 	const [timeRange, setTimeRange] = React.useState("all");
 	const [activeChart, setActiveChart] = React.useState<"desktop" | "mobile" | "all">("all");
 
-	const safeData = Array.isArray(data) ? data : [];
+	const safeData = React.useMemo(() => (Array.isArray(data) ? data : []), [data]);
 
 	// Map API rows to chart points
 	const points = React.useMemo(() => {

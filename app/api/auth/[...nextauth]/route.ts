@@ -48,7 +48,7 @@ const handler = NextAuth({
 						email: null,
 					};
 				} catch (error) {
-					//console.error("Auth error:", error)
+					console.error("Auth error:", error);
 					return null;
 				}
 			},

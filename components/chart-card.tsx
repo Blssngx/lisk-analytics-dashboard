@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircleIcon, Play } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, AlertTitle } from "./ui/alert";
 
 interface ChartCardProps {
@@ -33,7 +33,7 @@ export function ChartCard({
 	cooldownKey,
 	error,
 }: Readonly<ChartCardProps>) {
-	const COOLDOWN_MS = 10 * 1000;
+	const COOLDOWN_MS = useMemo(() => 10 * 1000, []); // 10 seconds cooldown
 	const [remaining, setRemaining] = useState(0);
 
 	useEffect(() => {
@@ -50,7 +50,7 @@ export function ChartCard({
 		update();
 		const id = setInterval(update, 1000);
 		return () => clearInterval(id);
-	}, [cooldownKey]);
+	}, [cooldownKey, COOLDOWN_MS]);
 
 	const disabled = isLoading || remaining > 0;
 	const label =

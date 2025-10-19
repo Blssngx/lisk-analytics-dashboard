@@ -156,7 +156,7 @@ export function TokenHoldersPieChart({
 			console.error("Error processing holder data:", error);
 			return [];
 		}
-	}, [data?.holdersData]);
+	}, [data]);
 
 	const totalHolders = React.useMemo(() => {
 		return chartData.reduce((acc, curr) => acc + curr.count, 0);

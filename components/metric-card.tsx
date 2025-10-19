@@ -1,8 +1,7 @@
 "use client";
 import React from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertCircleIcon, Play } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 import { Alert, AlertTitle } from "./ui/alert";
 
 interface MetricCardProps {
