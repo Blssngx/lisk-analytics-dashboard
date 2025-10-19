@@ -1,4 +1,4 @@
-// Example: Refactored tokens route with improved caching
+// API route for managing tokens with caching and CRUD operations
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
 import { withCacheFallback } from "@/lib/cache-middleware";
