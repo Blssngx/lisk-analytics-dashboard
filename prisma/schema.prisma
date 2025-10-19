@@ -10,193 +10,174 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  username String @db.VarChar(255)
-  password String @db.VarChar(255)
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  username String @unique
+  password String
+  // Add more user fields as needed (e.g., email, roles)
 }
 
 model Token {
-  id               String @id @default(uuid())
-  name             String @unique // e.g., "L ZAR Coin" or "L USD Coin"
-  symbol           String @unique // e.g., "LZAR" or "LUSD"
-  contractAddress  String @unique
-  decimals         Int    @default(18)
-  totalSupply      Decimal @db.Decimal(65, 30) @default(0)
-  totalSupplyFormatted String? // e.g., "10576000"
-  circulatingSupply String? // e.g., "10576000"
-  marketCap        Decimal @db.Decimal(65, 30) @default(0)
-  blockNumber      Int? // Block number when token was created
-  validated        Int @default(1)
-  verifiedContract Boolean @default(false)
-  possibleSpam     Boolean @default(false)
-  isActive         Boolean @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  // Relations to the data models
-  dailyMetrics     DailyCumulativeMetrics[]
-  uniqueWallets    DailyUniqueWallets[]
-  weeklyPayments   WeeklyPayments[]
-  priceData        TokenPriceData[]
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String   @unique
+  symbol               String   @unique
+  contractAddress      String   @unique
+  decimals             Int      @default(18)
+  totalSupply          Float    @default(0)
+  totalSupplyFormatted String?
+  circulatingSupply    String?
+  marketCap            Float    @default(0)
+  blockNumber          Int?
+  validated            Int      @default(1)
+  verifiedContract     Boolean  @default(false)
+  possibleSpam         Boolean  @default(false)
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  dailyMetrics        DailyCumulativeMetrics[]
+  uniqueWallets       DailyUniqueWallets[]
+  weeklyPayments      WeeklyPayments[]
+  priceData           TokenPriceData[]
   transactionActivity TransactionActivity[]
-  hourlyActivity   HourlyActivity[]
-  tokenHolders     TokenHolders[]
+  hourlyActivity      HourlyActivity[]
+  tokenHolders        TokenHolders[]
 }
 
-// Stores the cumulative growth data on a daily basis
 model DailyCumulativeMetrics {
-  id                   String   @id @default(uuid())
-  date                 DateTime @db.Date
-  cumulativeTxCount    Int
-  cumulativeTxAmount   Decimal  @db.Decimal(65, 30) // Use a high precision for crypto amounts
-  dailyTxCount         Int      @default(0) // New transactions for this day
-  dailyTxAmount        Decimal  @db.Decimal(65, 30) @default(0) // New transaction amount for this day
-  
-  // Relations to the Token model
-  tokenId              String
-  token                Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  date               DateTime
+  cumulativeTxCount  Int
+  cumulativeTxAmount Float
+  dailyTxCount       Int      @default(0)
+  dailyTxAmount      Float    @default(0)
 
-  // Ensures that there is only one entry per token per day
+  // Relations
+  tokenId String @db.ObjectId
+  token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
   @@unique([tokenId, date])
-  @@index([tokenId, date])
 }
 
-// Stores the daily unique wallet count
 model DailyUniqueWallets {
-  id                String   @id @default(uuid())
-  date              DateTime @db.Date
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  date              DateTime
   uniqueWalletCount Int
-  newWallets        Int      @default(0) // New wallets for this day
-  activeWallets     Int      @default(0) // Wallets that had activity
+  newWallets        Int      @default(0)
+  activeWallets     Int      @default(0)
 
-  // Relations to the Token model
-  tokenId           String
-  token             Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  // Relations
+  tokenId String @db.ObjectId
+  token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
 
-  // Ensures uniqueness
   @@unique([tokenId, date])
-  @@index([tokenId, date])
 }
 
-// Stores the weekly interest payment totals
 model WeeklyPayments {
-  id                  String   @id @default(uuid())
-  weekStartDate       DateTime @db.Date
-  totalPaymentsAmount Decimal  @db.Decimal(65, 30)
-  paymentCount        Int      @default(0) // Number of payments made
-  averagePayment      Decimal  @db.Decimal(65, 30) @default(0)
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  weekStartDate       DateTime
+  totalPaymentsAmount Float
+  paymentCount        Int      @default(0)
+  averagePayment      Float    @default(0)
 
-  // Relations to the Token model
-  tokenId             String
-  token               Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  // Relations
+  tokenId String @db.ObjectId
+  token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
 
-  // Ensures uniqueness
   @@unique([tokenId, weekStartDate])
-  @@index([tokenId, weekStartDate])
 }
 
-// Stores token price data for price charts
 model TokenPriceData {
-  id          String   @id @default(uuid())
-  timestamp   DateTime
-  price       Decimal  @db.Decimal(20, 8)
-  volume      Decimal  @db.Decimal(65, 30) @default(0)
-  marketCap   Decimal  @db.Decimal(65, 30) @default(0)
-  change24h   Decimal  @db.Decimal(10, 4) @default(0) // 24h price change percentage
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  timestamp DateTime
+  price     Float
+  volume    Float    @default(0)
+  marketCap Float    @default(0)
+  change24h Float    @default(0)
 
-  // Relations to the Token model
-  tokenId     String
-  token       Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  // Relations
+  tokenId String @db.ObjectId
+  token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
 
-  // Indexes for efficient querying
   @@index([tokenId, timestamp])
   @@index([timestamp])
 }
 
-// Stores transaction activity for heatmap and activity analysis
 model TransactionActivity {
-  id              String   @id @default(uuid())
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
   timestamp       DateTime
-  transactionHash String?  @db.VarChar(66) // Optional transaction hash
-  fromAddress     String   @db.VarChar(42) // Sender address
-  toAddress       String   @db.VarChar(42) // Receiver address
-  amount          Decimal  @db.Decimal(65, 30)
+  transactionHash String?
+  fromAddress     String
+  toAddress       String
+  amount          Float
   gasUsed         Int      @default(0)
   gasPrice        Int      @default(0)
   blockNumber     Int?
   isSuccess       Boolean  @default(true)
 
-  // Relations to the Token model
-  tokenId         String
-  token           Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  // Relations
+  tokenId String @db.ObjectId
+  token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
 
-  // Indexes for efficient querying
   @@index([tokenId, timestamp])
   @@index([fromAddress])
   @@index([toAddress])
   @@index([timestamp])
 }
 
-// Stores hourly activity data for heatmap charts
 model HourlyActivity {
-  id              String   @id @default(uuid())
-  date            DateTime @db.Date
-  hour            Int      // 0-23
-  transactionCount Int     @default(0)
-  totalVolume     Decimal  @db.Decimal(65, 30) @default(0)
-  uniqueWallets   Int      @default(0)
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  date             DateTime
+  hour             Int
+  transactionCount Int      @default(0)
+  totalVolume      Float    @default(0)
+  uniqueWallets    Int      @default(0)
 
-  // Relations to the Token model
-  tokenId         String
-  token           Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  // Relations
+  tokenId String @db.ObjectId
+  token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
 
-  // Ensures uniqueness and provides efficient querying
   @@unique([tokenId, date, hour])
   @@index([tokenId, date])
   @@index([date, hour])
 }
 
-// Stores aggregated wallet statistics
 model WalletStats {
-  id                    String   @id @default(uuid())
-  date                  DateTime @db.Date
-  totalWallets          Int      @default(0)
-  activeWallets         Int      @default(0) // Wallets with transactions
-  newWallets            Int      @default(0)
-  whaleWallets          Int      @default(0) // Wallets with >1% of supply
-  averageBalance        Decimal  @db.Decimal(65, 30) @default(0)
-  medianBalance         Decimal  @db.Decimal(65, 30) @default(0)
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  date           DateTime
+  totalWallets   Int      @default(0)
+  activeWallets  Int      @default(0)
+  newWallets     Int      @default(0)
+  whaleWallets   Int      @default(0)
+  averageBalance Float    @default(0)
+  medianBalance  Float    @default(0)
 
-  // Relations to the Token model
-  tokenId               String
+  // Relations
+  tokenId String @db.ObjectId
+  // No relation to Token (add if needed)
 
-  // Ensures uniqueness
   @@unique([tokenId, date])
-  @@index([tokenId, date])
 }
 
-// Stores token holders data
 model TokenHolders {
-  id                    String   @id @default(uuid())
-  date                  DateTime @db.Date
-  totalHolders          Int      @default(0)
-  totalSupply           Decimal  @db.Decimal(65, 30) @default(0)
-  whaleCount            Int      @default(0) // >1% of supply
-  largeCount            Int      @default(0) // 0.1% - 1% of supply
-  mediumCount           Int      @default(0) // 0.01% - 0.1% of supply
-  smallCount            Int      @default(0) // <0.01% of supply
-  holdersData           Json?    // Store detailed holders data as JSON
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  date         DateTime
+  totalHolders Int      @default(0)
+  totalSupply  Float    @default(0)
+  whaleCount   Int      @default(0)
+  largeCount   Int      @default(0)
+  mediumCount  Int      @default(0)
+  smallCount   Int      @default(0)
+  holdersData  Json?
 
-  // Relations to the Token model
-  tokenId               String
-  token                 Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  // Relations
+  tokenId String @db.ObjectId
+  token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
 
-  // Ensures uniqueness
   @@unique([tokenId, date])
-  @@index([tokenId, date])
 }
