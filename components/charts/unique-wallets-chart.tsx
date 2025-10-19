@@ -9,7 +9,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import { DailyUniqueWallets } from "@/lib/generated/prisma/wasm";
+import { DailyUniqueWallets } from "@/lib/generated/prisma";
 import { useMemo } from "react";
 
 export const description = "Unique wallets over time";

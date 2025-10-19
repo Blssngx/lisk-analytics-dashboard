@@ -9,7 +9,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import { DailyCumulativeMetrics } from "@/lib/generated/prisma/wasm";
+import { DailyCumulativeMetrics } from "@/lib/generated/prisma";
 // Removed Card and Select UI imports since we render a custom header with legend and buttons
 
 export const description = "An interactive area chart";

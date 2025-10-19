@@ -25,12 +25,12 @@ const requestDuplicator = new RequestDuplicator();
 
 // API functions
 const fetchMoralisTokenData = async (contractAddress: string): Promise<MoralisTokenData> => {
-	const response = await fetch(`/api/queries/token-data`, {
-		method: "POST",
+	const params = new URLSearchParams({ contractAddress });
+	const response = await fetch(`/api/queries/token-data?${params.toString()}`, {
+		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
-		body: JSON.stringify({ contractAddress }),
 	});
 
 	if (!response.ok) {
@@ -44,12 +44,15 @@ const fetchMoralisTransactions = async (
 	contractAddress: string,
 	limit: number = 100,
 ): Promise<MoralisTransaction[]> => {
-	const response = await fetch(`/api/queries/transactions`, {
-		method: "POST",
+	const params = new URLSearchParams({
+		contractAddress,
+		limit: limit.toString(),
+	});
+	const response = await fetch(`/api/queries/transactions?${params.toString()}`, {
+		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
-		body: JSON.stringify({ contractAddress, limit }),
 	});
 
 	if (!response.ok) {
@@ -63,12 +66,15 @@ const fetchMoralisTransfers = async (
 	contractAddress: string,
 	limit: number = 100,
 ): Promise<MoralisTransfer[]> => {
-	const response = await fetch(`/api/queries/transfers`, {
-		method: "POST",
+	const params = new URLSearchParams({
+		contractAddress,
+		limit: limit.toString(),
+	});
+	const response = await fetch(`/api/queries/transfers?${params.toString()}`, {
+		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
-		body: JSON.stringify({ contractAddress, limit }),
 	});
 
 	if (!response.ok) {
@@ -79,12 +85,12 @@ const fetchMoralisTransfers = async (
 };
 
 const fetchCumulativeGrowth = async (contractAddress: string): Promise<any> => {
-	const response = await fetch(`/api/queries/cumulative-growth`, {
-		method: "POST",
+	const params = new URLSearchParams({ contractAddress });
+	const response = await fetch(`/api/queries/cumulative-growth?${params.toString()}`, {
+		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
-		body: JSON.stringify({ contractAddress }),
 	});
 
 	if (!response.ok) {
@@ -99,12 +105,12 @@ const fetchCumulativeGrowth = async (contractAddress: string): Promise<any> => {
 };
 
 const fetchUniqueWallets = async (contractAddress: string): Promise<any> => {
-	const response = await fetch(`/api/queries/unique-wallets`, {
-		method: "POST",
+	const params = new URLSearchParams({ contractAddress });
+	const response = await fetch(`/api/queries/unique-wallets?${params.toString()}`, {
+		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
-		body: JSON.stringify({ contractAddress }),
 	});
 
 	if (!response.ok) {
@@ -119,12 +125,12 @@ const fetchUniqueWallets = async (contractAddress: string): Promise<any> => {
 };
 
 const fetchWeeklyPayments = async (contractAddress: string, methodId: string): Promise<any> => {
-	const response = await fetch(`/api/queries/weekly-payments`, {
-		method: "POST",
+	const params = new URLSearchParams({ contractAddress, methodId });
+	const response = await fetch(`/api/queries/weekly-payments?${params.toString()}`, {
+		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
-		body: JSON.stringify({ contractAddress, methodId }),
 	});
 
 	if (!response.ok) {
@@ -138,12 +144,12 @@ const fetchWeeklyPayments = async (contractAddress: string, methodId: string): P
 	return result.data || result; // Return data property if it exists, otherwise return the whole result
 };
 const fetchTokenHolders = async (contractAddress: string): Promise<any> => {
-	const response = await fetch(`/api/queries/holders`, {
-		method: "POST",
+	const params = new URLSearchParams({ contractAddress });
+	const response = await fetch(`/api/queries/holders?${params.toString()}`, {
+		method: "GET",
 		headers: {
-			"Content-Type": "application/json",
+			Accept: "application/json",
 		},
-		body: JSON.stringify({ contractAddress }), // Only send contractAddress, methodId not needed
 	});
 
 	if (!response.ok) {
@@ -257,13 +263,16 @@ export const useTokenMetadata = (contractAddress: string) => {
 			requestDuplicator.deduplicate(
 				`token-metadata:${contractAddress}`,
 				async (): Promise<MoralisTokenData> => {
-					const response = await fetch("/api/moralis/token-metadata", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
+					const params = new URLSearchParams({ contractAddress });
+					const response = await fetch(
+						`/api/moralis/token-metadata?${params.toString()}`,
+						{
+							method: "GET",
+							headers: {
+								Accept: "application/json",
+							},
 						},
-						body: JSON.stringify({ contractAddress }),
-					});
+					);
 
 					if (!response.ok) {
 						throw new Error("Failed to fetch token metadata");
@@ -288,12 +297,12 @@ export const useRefreshTokenData = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-token-data:${contractAddress}`,
 				async () => {
-					const response = await fetch(`/api/queries/token-data`, {
-						method: "POST",
+					const params = new URLSearchParams({ contractAddress });
+					const response = await fetch(`/api/queries/token-data?${params.toString()}`, {
+						method: "GET",
 						headers: {
-							"Content-Type": "application/json",
+							Accept: "application/json",
 						},
-						body: JSON.stringify({ contractAddress }),
 					});
 
 					if (!response.ok) {
@@ -328,13 +337,16 @@ export const useRefreshCumulativeGrowth = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-cumulative-growth:${contractAddress}`,
 				async () => {
-					const response = await fetch(`/api/queries/cumulative-growth`, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
+					const params = new URLSearchParams({ contractAddress });
+					const response = await fetch(
+						`/api/queries/cumulative-growth?${params.toString()}`,
+						{
+							method: "GET",
+							headers: {
+								Accept: "application/json",
+							},
 						},
-						body: JSON.stringify({ contractAddress }),
-					});
+					);
 
 					if (!response.ok) {
 						throw new Error("Failed to refresh cumulative growth data");
@@ -373,13 +385,16 @@ export const useRefreshUniqueWallets = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-unique-wallets:${contractAddress}`,
 				async () => {
-					const response = await fetch(`/api/queries/unique-wallets`, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
+					const params = new URLSearchParams({ contractAddress });
+					const response = await fetch(
+						`/api/queries/unique-wallets?${params.toString()}`,
+						{
+							method: "GET",
+							headers: {
+								Accept: "application/json",
+							},
 						},
-						body: JSON.stringify({ contractAddress }),
-					});
+					);
 
 					if (!response.ok) {
 						throw new Error("Failed to refresh unique wallets data");
@@ -423,13 +438,16 @@ export const useRefreshWeeklyPayments = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-weekly-payments:${contractAddress}:${methodId}`,
 				async () => {
-					const response = await fetch(`/api/queries/weekly-payments`, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
+					const params = new URLSearchParams({ contractAddress, methodId });
+					const response = await fetch(
+						`/api/queries/weekly-payments?${params.toString()}`,
+						{
+							method: "GET",
+							headers: {
+								Accept: "application/json",
+							},
 						},
-						body: JSON.stringify({ contractAddress, methodId }),
-					});
+					);
 
 					if (!response.ok) {
 						throw new Error("Failed to refresh weekly payments data");
@@ -470,12 +488,12 @@ export const useRefreshTokenHolders = () => {
 			return requestDuplicator.deduplicate(
 				`refresh-token-holders:${contractAddress}`,
 				async () => {
-					const response = await fetch(`/api/queries/holders`, {
-						method: "POST",
+					const params = new URLSearchParams({ contractAddress });
+					const response = await fetch(`/api/queries/holders?${params.toString()}`, {
+						method: "GET",
 						headers: {
-							"Content-Type": "application/json",
+							Accept: "application/json",
 						},
-						body: JSON.stringify({ contractAddress }),
 					});
 
 					if (!response.ok) {
