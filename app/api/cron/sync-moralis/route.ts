@@ -30,9 +30,16 @@ const SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
 /**
  * Generate endpoint URLs for a specific contract
  */
-function generateEndpoints(contractAddress: string, baseUrl: string): string[] {
+function generateEndpoints(
+	contractAddress: string,
+	baseUrl: string,
+	lastSync: Date | null,
+): string[] {
 	return QUERY_ENDPOINTS.map(
-		(endpoint) => `${baseUrl}/api/queries/${endpoint}?contractAddress=${contractAddress}`,
+		(endpoint) =>
+			`${baseUrl}/api/queries/${endpoint}?contractAddress=${contractAddress}&lastSync=${
+				lastSync?.toISOString() || ""
+			}`,
 	);
 }
 
@@ -153,9 +160,11 @@ export async function GET(request: NextRequest) {
 				);
 				continue;
 			}
+			console.log(`✅ Scheduling ${address} (${name}) for sync`);
 			contractsToActuallySync.push({ address, name });
 		}
 		if (contractsToActuallySync.length === 0) {
+			console.log("⚠️ No contracts need syncing (all recently synced)");
 			return NextResponse.json(
 				{
 					error: "No contracts need syncing (all recently synced)",
@@ -168,7 +177,8 @@ export async function GET(request: NextRequest) {
 		// Execute sync for all contracts
 		const allResults = await Promise.all(
 			contractsToActuallySync.map(async ({ address, name }) => {
-				const endpoints = generateEndpoints(address, baseUrl);
+				const lastSync = await getLastSync(address);
+				const endpoints = generateEndpoints(address, baseUrl, lastSync?.lastSyncAt || null);
 				// Store sync start info
 				const syncStart = new Date();
 				let syncInfoId: string | undefined;

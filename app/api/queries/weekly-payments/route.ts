@@ -9,11 +9,15 @@ export async function GET(request: NextRequest) {
 		const searchParams = url.searchParams;
 		const contractAddress: string | undefined =
 			searchParams.get("contractAddress") || undefined;
+		const lastSyncParam: string | undefined = searchParams.get("lastSync") || undefined;
+		const toDate = lastSyncParam ? new Date(lastSyncParam) : undefined;
 
 		if (!contractAddress) {
 			return NextResponse.json({ error: "contractAddress is required" }, { status: 400 });
 		}
 
+		// Resolve the token by contract address
+		console.log(`Fetching token for contractAddress: ${contractAddress} up to ${toDate}`);
 		const token = await TokenDataService.getTokenByContractAddress(
 			contractAddress.toLowerCase(),
 		);
@@ -38,6 +42,7 @@ export async function GET(request: NextRequest) {
 			url.searchParams.set("chain", "0x46f");
 			url.searchParams.set("order", "DESC");
 			url.searchParams.set("limit", "100");
+			if (toDate) url.searchParams.set("to_date", toDate.toISOString());
 			if (cursor) url.searchParams.set("cursor", cursor);
 
 			const res = await fetch(url.toString(), {
@@ -50,8 +55,8 @@ export async function GET(request: NextRequest) {
 			allTransactions = [...allTransactions, ...(data.result || [])];
 			cursor = data.cursor || null;
 		} while (cursor);
-		const transferTransactions = allTransactions.filter(
-			(tx: any) => tx.input && tx.input.startsWith(transferMethodId),
+		const transferTransactions = allTransactions.filter((tx: any) =>
+			tx?.input?.startsWith(transferMethodId),
 		);
 
 		const processedData = await WeeklyPaymentsProcessor.processWeeklyPaymentsFromTransactions(
@@ -69,7 +74,7 @@ export async function GET(request: NextRequest) {
 			message: "Weekly payments data updated",
 		});
 	} catch (error) {
-		//console.error("Weekly payments query error:", error);
+		console.error("Weekly payments query error:", error);
 		return NextResponse.json(
 			{
 				error: "Weekly payments data fetch failed",
