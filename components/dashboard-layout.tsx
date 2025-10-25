@@ -1,5 +1,4 @@
 "use client";
-
 import type React from "react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -26,7 +25,7 @@ export function DashboardLayout({ children }: Readonly<DashboardLayoutProps>) {
 		<div className="min-h-screen">
 			{/* Top Navigation */}
 			<nav className="border-b border-gray-800">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="flex justify-between h-16">
 						<div className="flex items-center">
 							<h1 className="text-xl font-bold text-white">Lisk Tracker</h1>

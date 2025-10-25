@@ -10,11 +10,15 @@ export async function GET(request: NextRequest) {
 		const searchParams = url.searchParams;
 		const contractAddress: string | undefined =
 			searchParams.get("contractAddress") || undefined;
+		const lastSyncParam: string | undefined = searchParams.get("lastSync") || undefined;
+		const toDate = lastSyncParam ? new Date(lastSyncParam) : undefined;
 
 		if (!contractAddress) {
 			return NextResponse.json({ error: "contractAddress is required" }, { status: 400 });
 		}
 
+		// Resolve the token by contract address
+		console.log(`Fetching token for contractAddress: ${contractAddress} up to ${toDate}`);
 		const token = await TokenDataService.getTokenByContractAddress(contractAddress);
 		if (!token) {
 			console.error(`Token not found for contractAddress: ${contractAddress}`);
@@ -30,6 +34,7 @@ export async function GET(request: NextRequest) {
 			address: token.contractAddress,
 			chain: EvmChain.create(1135), // Lisk chain ID
 			limit: 100,
+			toDate,
 		});
 
 		let compiledData = firstPage.raw;
@@ -40,6 +45,7 @@ export async function GET(request: NextRequest) {
 				chain: EvmChain.create(1135), // Lisk chain ID
 				limit: 100,
 				cursor: compiledData.cursor,
+				toDate,
 			});
 			compiledData = {
 				...newData.raw,
@@ -61,7 +67,7 @@ export async function GET(request: NextRequest) {
 			message: "Unique wallets data updated",
 		});
 	} catch (error) {
-		//console.error('Unique wallets query error:', error);
+		console.error("Unique wallets query error:", error);
 		return NextResponse.json(
 			{
 				error: "Unique wallets data fetch failed",

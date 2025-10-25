@@ -5,7 +5,10 @@
  */
 
 import { CacheService } from "@/lib/services/cache-service";
+import { PrismaClient } from "@/lib/generated/prisma/client";
 import { NextResponse, NextRequest } from "next/server";
+
+const prisma = new PrismaClient();
 
 // Configuration for supported contracts
 const SUPPORTED_CONTRACTS = {
@@ -21,12 +24,22 @@ const QUERY_ENDPOINTS = [
 	"weekly-payments",
 ] as const;
 
+const SYNC_ROUTE = "/api/cron/sync-moralis";
+const SYNC_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
+
 /**
  * Generate endpoint URLs for a specific contract
  */
-function generateEndpoints(contractAddress: string, baseUrl: string): string[] {
+function generateEndpoints(
+	contractAddress: string,
+	baseUrl: string,
+	lastSync: Date | null,
+): string[] {
 	return QUERY_ENDPOINTS.map(
-		(endpoint) => `${baseUrl}/api/queries/${endpoint}?contractAddress=${contractAddress}`,
+		(endpoint) =>
+			`${baseUrl}/api/queries/${endpoint}?contractAddress=${contractAddress}&lastSync=${
+				lastSync?.toISOString() || ""
+			}`,
 	);
 }
 
@@ -83,6 +96,17 @@ async function executeEndpoints(endpoints: string[], contractAddress: string) {
 	return { successful, failed };
 }
 
+async function getLastSync(contractAddress: string) {
+	return prisma.syncInfo.findFirst({
+		where: { route: SYNC_ROUTE, contractAddress },
+		orderBy: { lastSyncAt: "desc" },
+	});
+}
+
+async function createSyncInfo(data: any) {
+	return prisma.syncInfo.create({ data });
+}
+
 export async function GET(request: NextRequest) {
 	try {
 		const url = new URL(request.url);
@@ -123,11 +147,100 @@ export async function GET(request: NextRequest) {
 		console.log("🧹 Invalidating all caches before sync...");
 		await CacheService.invalidateAllCaches();
 
+		// Check last sync for each contract and skip if not due
+		const contractsToActuallySync: typeof contractsToSync = [];
+		for (const { address, name } of contractsToSync) {
+			const lastSync = await getLastSync(address);
+			if (
+				lastSync?.lastSyncAt &&
+				Date.now() - new Date(lastSync.lastSyncAt).getTime() < SYNC_INTERVAL_MS
+			) {
+				console.log(
+					`⏩ Skipping ${address} (${name}) - last sync at ${lastSync.lastSyncAt}`,
+				);
+				continue;
+			}
+			console.log(`✅ Scheduling ${address} (${name}) for sync`);
+			contractsToActuallySync.push({ address, name });
+		}
+		if (contractsToActuallySync.length === 0) {
+			console.log("⚠️ No contracts need syncing (all recently synced)");
+			return NextResponse.json(
+				{
+					error: "No contracts need syncing (all recently synced)",
+					skipped: contractsToSync.map((c) => c.address),
+				},
+				{ status: 200 },
+			);
+		}
+
 		// Execute sync for all contracts
 		const allResults = await Promise.all(
-			contractsToSync.map(async ({ address, name }) => {
-				const endpoints = generateEndpoints(address, baseUrl);
+			contractsToActuallySync.map(async ({ address, name }) => {
+				const lastSync = await getLastSync(address);
+				const endpoints = generateEndpoints(address, baseUrl, lastSync?.lastSyncAt || null);
+				// Store sync start info
+				const syncStart = new Date();
+				let syncInfoId: string | undefined;
+				try {
+					const syncInfo = await createSyncInfo({
+						route: SYNC_ROUTE,
+						contractAddress: address,
+						startedAt: syncStart,
+						syncStatus: "in_progress",
+						lastSyncAt: syncStart,
+						nextSyncAt: new Date(syncStart.getTime() + SYNC_INTERVAL_MS),
+						syncSize: 0,
+						dataBytes: 0,
+						durationMs: 0,
+						finishedAt: syncStart,
+						createdAt: syncStart,
+						updatedAt: syncStart,
+						totalEndpoints: endpoints.length,
+						totalSuccessful: 0,
+						totalFailed: 0,
+					});
+					syncInfoId = syncInfo.id;
+				} catch (e) {
+					console.error("Failed to create SyncInfo record", e);
+				}
 				const { successful, failed } = await executeEndpoints(endpoints, address);
+
+				const syncEnd = new Date();
+				// Calculate sync stats
+				const syncSize = successful.reduce(
+					(acc, s) => acc + (Array.isArray(s.data?.data) ? s.data.data.length : 0),
+					0,
+				);
+				const dataBytes = successful.reduce(
+					(acc, s) => acc + JSON.stringify(s.data || {}).length,
+					0,
+				);
+				const durationMs = syncEnd.getTime() - syncStart.getTime();
+				// Update SyncInfo record
+				if (syncInfoId) {
+					await prisma.syncInfo.update({
+						where: { id: syncInfoId },
+						data: {
+							syncStatus: failed.length === 0 ? "success" : "failed",
+							finishedAt: syncEnd,
+							lastSyncAt: syncEnd,
+							nextSyncAt: new Date(syncEnd.getTime() + SYNC_INTERVAL_MS),
+							syncSize,
+							dataBytes,
+							durationMs,
+							errorMessage: failed.length
+								? failed.map((f) => `${f.endpoint}: ${f.error}`).join("; ")
+								: null,
+							updatedAt: syncEnd,
+							totalEndpoints: endpoints.length,
+							totalSuccessful: successful.length,
+							totalFailed: failed.length,
+						},
+					});
+				}
+
+				// If sync failed, optionally handle alerting or retry logic here
 
 				return {
 					contractAddress: address,
