@@ -47,6 +47,8 @@ model Token {
   transactionActivity TransactionActivity[]
   hourlyActivity      HourlyActivity[]
   tokenHolders        TokenHolders[]
+
+  SyncInfo SyncInfo[]
 }
 
 model DailyCumulativeMetrics {
@@ -180,4 +182,32 @@ model TokenHolders {
   token   Token  @relation(fields: [tokenId], references: [id], onDelete: Cascade)
 
   @@unique([tokenId, date])
+}
+
+model SyncInfo {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  route           String // e.g. "api/queries/holders"
+  contractAddress String // foreign key to Token.contractAddress
+  lastSyncAt      DateTime
+  syncStatus      String
+  syncSize        Int
+  dataBytes       Int
+  errorMessage    String?
+  nextSyncAt      DateTime
+  startedAt       DateTime
+  finishedAt      DateTime
+  durationMs      Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // overall sync stats
+  totalEndpoints  Int      // total number of endpoints attempted in this sync
+  totalSuccessful Int      // number of successful endpoints
+  totalFailed     Int      // number of failed endpoints
+
+  // Relations
+  token Token @relation(fields: [contractAddress], references: [contractAddress], onDelete: Cascade)
+
+  @@index([route, contractAddress])
+  @@index([lastSyncAt])
 }

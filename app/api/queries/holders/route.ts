@@ -4,13 +4,15 @@ import { TokenHoldersProcessor } from "@/lib/services/token-holders-processor";
 import { NextRequest, NextResponse } from "next/server";
 import { EvmChain } from "@moralisweb3/common-evm-utils";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
 	try {
-		const body = await request.json().catch(() => ({} as any));
-		const contractAddress: string | undefined = body?.contractAddress;
+		const url = new URL(request.url);
+		const searchParams = url.searchParams;
+		const contractAddress: string | undefined =
+			searchParams.get("contractAddress") || undefined;
 
 		if (!contractAddress) {
-			console.error("contractAddress is missing in the request body");
+			console.error("contractAddress is missing in the request body", searchParams);
 			return NextResponse.json({ error: "contractAddress is required" }, { status: 400 });
 		}
 
@@ -34,14 +36,12 @@ export async function POST(request: NextRequest) {
 		});
 
 		console.log(
-			`Fetched first page of token owners for ${token.contractAddress}, count: ${
-				firstPage.raw().result.length
-			}`,
+			`Fetched first page of token owners for ${token.contractAddress}, count: ${firstPage.result.length}`,
 		);
 
 		// Initialize with first page data
-		let allHolders = [...firstPage.raw().result];
-		let currentCursor = firstPage.raw().cursor;
+		let allHolders = [...firstPage.result];
+		let currentCursor = firstPage.response.cursor;
 
 		// Fetch all remaining pages using cursor
 		while (currentCursor) {
@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
 			});
 
 			// Add new results to our collection
-			allHolders = [...allHolders, ...nextPage.raw().result];
-			currentCursor = nextPage.raw().cursor;
+			allHolders = [...allHolders, ...nextPage.result];
+			currentCursor = nextPage.response.cursor;
 		}
 
 		// Process and calculate holders data

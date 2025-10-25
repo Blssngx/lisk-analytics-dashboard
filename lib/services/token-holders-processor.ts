@@ -1,129 +1,132 @@
 import { TokenHolder, ProcessedHoldersData } from "@/types";
 
 export class TokenHoldersProcessor {
-  static processHoldersData(moralisData: any[], token: any): ProcessedHoldersData {
-    const holders: TokenHolder[] = [];
-    let totalSupply = 0;
+	static processHoldersData(moralisData: any[], token: any): ProcessedHoldersData {
+		const holders: TokenHolder[] = [];
+		let totalSupply = 0;
 
- 
-    // Process each holder using pre-formatted data from Moralis
-    moralisData.forEach((holder: any) => {
-      try {
-        // Handle both snake_case and camelCase field names from Moralis
-        const balanceFormatted = holder.balance_formatted || holder.balanceFormatted;
-        const ownerAddress = holder.owner_address || holder.ownerAddress;
-        const percentage = holder.percentage_relative_to_total_supply || holder.percentageRelativeToTotalSupply || 0;
+		// Process each holder using pre-formatted data from Moralis
+		moralisData.forEach((holder: any) => {
+			try {
+				// Handle both snake_case and camelCase field names from Moralis
+				const balanceFormatted = holder.balance_formatted || holder.balanceFormatted;
+				const ownerAddress = holder.owner_address || holder.ownerAddress;
+				const percentage =
+					holder.percentage_relative_to_total_supply ||
+					holder.percentageRelativeToTotalSupply ||
+					0;
 
-        if (!balanceFormatted || !ownerAddress) {
-          //console.warn('Skipping holder with missing data:', holder);
-          return;
-        }
+				if (!balanceFormatted || !ownerAddress) {
+					console.warn("Skipping holder with missing data:", holder);
+					return;
+				}
 
-        // Use the pre-formatted balance from Moralis
-        const balance = parseFloat(balanceFormatted);
-        
-        // Skip if balance conversion failed
-        if (isNaN(balance)) {
-          //console.warn('Skipping holder with invalid balance:', holder);
-          return;
-        }
+				// Use the pre-formatted balance from Moralis
+				const balance = parseFloat(balanceFormatted);
 
-        holders.push({
-          address: ownerAddress,
-          balance,
-          balanceFormatted: balanceFormatted,
-          percentage
-        });
+				// Skip if balance conversion failed
+				if (isNaN(balance)) {
+					console.warn("Skipping holder with invalid balance:", holder);
+					return;
+				}
 
-        totalSupply += balance;
-      } catch (error) {
-        //console.error('Error processing holder:', holder, error);
-      }
-    });
+				holders.push({
+					address: ownerAddress,
+					balance,
+					balanceFormatted: balanceFormatted,
+					percentage,
+				});
 
-    // Sort by balance (descending) - percentages are already calculated by Moralis
-    holders.sort((a, b) => b.balance - a.balance);
+				totalSupply += balance;
+			} catch (error) {
+				console.error("Error processing holder:", holder, error);
+			}
+		});
 
-    // Calculate distribution categories
-    const distribution = {
-      whales: 0, // >1% of supply
-      large: 0,  // 0.1% - 1% of supply
-      medium: 0, // 0.01% - 0.1% of supply
-      small: 0   // <0.01% of supply
-    };
+		// Sort by balance (descending) - percentages are already calculated by Moralis
+		holders.sort((a, b) => b.balance - a.balance);
 
-    holders.forEach(holder => {
-      if (holder.percentage > 1) {
-        distribution.whales++;
-      } else if (holder.percentage > 0.1) {
-        distribution.large++;
-      } else if (holder.percentage > 0.01) {
-        distribution.medium++;
-      } else {
-        distribution.small++;
-      }
-    });
+		// Calculate distribution categories
+		const distribution = {
+			whales: 0, // >1% of supply
+			large: 0, // 0.1% - 1% of supply
+			medium: 0, // 0.01% - 0.1% of supply
+			small: 0, // <0.01% of supply
+		};
 
-    return {
-      totalHolders: holders.length,
-      totalSupply,
-      holders,
-      distribution
-    };
-  }
+		holders.forEach((holder) => {
+			if (holder.percentage > 1) {
+				distribution.whales++;
+			} else if (holder.percentage > 0.1) {
+				distribution.large++;
+			} else if (holder.percentage > 0.01) {
+				distribution.medium++;
+			} else {
+				distribution.small++;
+			}
+		});
 
-  // Method to format data for pie chart
-  static formatForPieChart(processedData: ProcessedHoldersData) {
-    const chartData = [
-      {
-        category: "Whales (>1%)",
-        count: processedData.distribution.whales,
-        percentage: (processedData.distribution.whales / processedData.totalHolders) * 100,
-        fill: "var(--chart-1)"
-      },
-      {
-        category: "Large (0.1-1%)",
-        count: processedData.distribution.large,
-        percentage: (processedData.distribution.large / processedData.totalHolders) * 100,
-        fill: "var(--chart-2)"
-      },
-      {
-        category: "Medium (0.01-0.1%)",
-        count: processedData.distribution.medium,
-        percentage: (processedData.distribution.medium / processedData.totalHolders) * 100,
-        fill: "var(--chart-3)"
-      },
-      {
-        category: "Small (<0.01%)",
-        count: processedData.distribution.small,
-        percentage: (processedData.distribution.small / processedData.totalHolders) * 100,
-        fill: "var(--chart-4)"
-      }
-    ];
+		return {
+			totalHolders: holders.length,
+			totalSupply,
+			holders,
+			distribution,
+		};
+	}
 
-    return chartData.filter(item => item.count > 0); // Only show categories with holders
-  }
+	// Method to format data for pie chart
+	static formatForPieChart(processedData: ProcessedHoldersData) {
+		const chartData = [
+			{
+				category: "Whales (>1%)",
+				count: processedData.distribution.whales,
+				percentage: (processedData.distribution.whales / processedData.totalHolders) * 100,
+				fill: "var(--chart-1)",
+			},
+			{
+				category: "Large (0.1-1%)",
+				count: processedData.distribution.large,
+				percentage: (processedData.distribution.large / processedData.totalHolders) * 100,
+				fill: "var(--chart-2)",
+			},
+			{
+				category: "Medium (0.01-0.1%)",
+				count: processedData.distribution.medium,
+				percentage: (processedData.distribution.medium / processedData.totalHolders) * 100,
+				fill: "var(--chart-3)",
+			},
+			{
+				category: "Small (<0.01%)",
+				count: processedData.distribution.small,
+				percentage: (processedData.distribution.small / processedData.totalHolders) * 100,
+				fill: "var(--chart-4)",
+			},
+		];
 
-  // Method to format data for bubble chart showing individual holders
-  static formatForBubbleChart(processedData: ProcessedHoldersData) {
-    return processedData.holders.map((holder, index) => ({
-      address: holder.address,
-      balance: holder.balance,
-      balanceFormatted: holder.balanceFormatted,
-      percentage: holder.percentage,
-      // Size based on percentage (min 10, max 50)
-      size: Math.max(10, Math.min(50, holder.percentage * 10)),
-      // Color based on category
-      fill: holder.percentage > 1 
-        ? "var(--chart-1)" 
-        : holder.percentage > 0.1 
-        ? "var(--chart-2)" 
-        : holder.percentage > 0.01 
-        ? "var(--chart-3)" 
-        : "var(--chart-4)",
-      // Position (we'll use index for x, percentage for y)
-      x: index,
-      y: holder.percentage
-    }));
-  }
+		return chartData.filter((item) => item.count > 0); // Only show categories with holders
+	}
+
+	// Method to format data for bubble chart showing individual holders
+	static formatForBubbleChart(processedData: ProcessedHoldersData) {
+		return processedData.holders.map((holder, index) => ({
+			address: holder.address,
+			balance: holder.balance,
+			balanceFormatted: holder.balanceFormatted,
+			percentage: holder.percentage,
+			// Size based on percentage (min 10, max 50)
+			size: Math.max(10, Math.min(50, holder.percentage * 10)),
+			// Color based on category
+			fill:
+				holder.percentage > 1
+					? "var(--chart-1)"
+					: holder.percentage > 0.1
+					? "var(--chart-2)"
+					: holder.percentage > 0.01
+					? "var(--chart-3)"
+					: "var(--chart-4)",
+			// Position (we'll use index for x, percentage for y)
+			x: index,
+			y: holder.percentage,
+		}));
+	}
 }
