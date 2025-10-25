@@ -196,6 +196,9 @@ export async function GET(request: NextRequest) {
 						finishedAt: syncStart,
 						createdAt: syncStart,
 						updatedAt: syncStart,
+						totalEndpoints: endpoints.length,
+						totalSuccessful: 0,
+						totalFailed: 0,
 					});
 					syncInfoId = syncInfo.id;
 				} catch (e) {
