@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { MetricCard } from "@/components/metric-card";
@@ -17,12 +16,6 @@ import {
 	useWeeklyPayments,
 	useTokenHolders,
 } from "@/hooks/use-token-data";
-import {
-	useRefreshCumulativeGrowth,
-	useRefreshUniqueWallets,
-	useRefreshWeeklyPayments,
-	useRefreshTokenHolders,
-} from "@/hooks/use-moralis-queries";
 
 export default function SymbolPage({
 	params,
@@ -33,7 +26,6 @@ export default function SymbolPage({
 		LZAR: process.env.NEXT_PUBLIC_LZAR_CONTRACT_ADDRESS || "",
 		LUSD: process.env.NEXT_PUBLIC_LUSD_CONTRACT_ADDRESS || "",
 	};
-	const METHOD_ID = "0xa9059cbb";
 
 	const CONTRACT_ADDRESS = CONTRACT_ADDRESSES[symbol.toUpperCase()] || "";
 
@@ -46,28 +38,26 @@ export default function SymbolPage({
 		data: cumulativeGrowthData,
 		isLoading: cumulativeGrowthLoading,
 		error: cumulativeGrowthError,
+		refetch: refetchCumulativeGrowth,
 	} = useCumulativeMetrics(tokenId);
 	const {
 		data: uniqueWalletsData,
 		isLoading: uniqueWalletsLoading,
 		error: uniqueWalletsError,
+		refetch: refetchUniqueWallets,
 	} = useWalletData(tokenId);
 	const {
 		data: weeklyPaymentsData,
 		isLoading: weeklyPaymentsLoading,
 		error: weeklyPaymentsError,
+		refetch: refetchWeeklyPayments,
 	} = useWeeklyPayments(tokenId);
 	const {
 		data: tokenHoldersData,
 		isLoading: tokenHoldersLoading,
 		error: tokenHoldersError,
+		refetch: refetchTokenHolders,
 	} = useTokenHolders(tokenId);
-
-	// Mutations
-	const refreshCumulativeGrowth = useRefreshCumulativeGrowth();
-	const refreshUniqueWallets = useRefreshUniqueWallets();
-	const refreshWeeklyPayments = useRefreshWeeklyPayments();
-	const refreshTokenHolders = useRefreshTokenHolders();
 
 	const [loadingStates, setLoadingStates] = useState({
 		cumulativeGrowth: false,
@@ -82,21 +72,16 @@ export default function SymbolPage({
 		try {
 			switch (queryType) {
 				case "cumulativeGrowth":
-					await refreshCumulativeGrowth.mutateAsync({
-						contractAddress: CONTRACT_ADDRESS,
-					});
+					await refetchCumulativeGrowth();
 					break;
 				case "uniqueWallets":
-					await refreshUniqueWallets.mutateAsync({ contractAddress: CONTRACT_ADDRESS });
+					await refetchUniqueWallets();
 					break;
 				case "weeklyPayments":
-					await refreshWeeklyPayments.mutateAsync({
-						contractAddress: CONTRACT_ADDRESS,
-						methodId: METHOD_ID,
-					});
+					await refetchWeeklyPayments();
 					break;
 				case "tokenHolders":
-					await refreshTokenHolders.mutateAsync({ contractAddress: CONTRACT_ADDRESS });
+					await refetchTokenHolders();
 					break;
 			}
 		} finally {
@@ -108,13 +93,10 @@ export default function SymbolPage({
 		setLoadingStates((prev) => ({ ...prev, allQueries: true }));
 		try {
 			await Promise.all([
-				refreshCumulativeGrowth.mutateAsync({ contractAddress: CONTRACT_ADDRESS }),
-				refreshUniqueWallets.mutateAsync({ contractAddress: CONTRACT_ADDRESS }),
-				refreshWeeklyPayments.mutateAsync({
-					contractAddress: CONTRACT_ADDRESS,
-					methodId: METHOD_ID,
-				}),
-				refreshTokenHolders.mutateAsync({ contractAddress: CONTRACT_ADDRESS }),
+				refetchCumulativeGrowth(),
+				refetchUniqueWallets(),
+				refetchWeeklyPayments(),
+				refetchTokenHolders(),
 			]);
 		} finally {
 			setLoadingStates((prev) => ({ ...prev, allQueries: false }));
