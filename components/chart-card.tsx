@@ -10,7 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircleIcon, Play } from "lucide-react";
+import { AlertCircleIcon, Play, RefreshCcw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, AlertTitle } from "./ui/alert";
 
@@ -70,7 +70,11 @@ export function ChartCard({
 						disabled={disabled}
 						size="sm"
 						className="bg-green-600 hover:bg-green-700 text-white">
-						<Play className="h-4 w-4 mr-2" />
+						{isLoading ? (
+							<RefreshCcw className="h-4 w-4 mr-2 animate-spin" />
+						) : (
+							<Play className="h-4 w-4 mr-2" />
+						)}
 						{label}
 					</Button>
 				)}
