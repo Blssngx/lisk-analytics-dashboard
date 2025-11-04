@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TokenDataService } from "@/lib/services/token-data-service";
-import { PrismaClient } from "@/lib/generated/prisma";
 import { withCacheFallback } from "@/lib/cache-middleware";
 import { CacheService, CACHE_TTL } from "@/lib/services/cache-service";
 import { AllTokensStats } from "@/types";
-
-const prisma = new PrismaClient();
 
 /**
  * Format large numbers with appropriate suffixes (K, M, B)
@@ -37,16 +34,6 @@ function formatCurrency(num: number): string {
 		return `R${(num / 1_000).toFixed(1)}K`;
 	}
 	return `R${num.toLocaleString()}`;
-}
-
-/**
- * Calculate growth percentage between two values
- */
-function calculateGrowth(current: number, previous: number): string {
-	if (previous === 0) return "+100%";
-	const growth = ((current - previous) / previous) * 100;
-	const sign = growth >= 0 ? "+" : "";
-	return `${sign}${growth.toFixed(1)}%`;
 }
 
 /**
@@ -101,6 +88,7 @@ async function calculateTokenStats(tokenId: string, tokenSymbol: string) {
 
 export async function GET(request: NextRequest) {
 	try {
+		console.log("fetching stats for: ", request.url);
 		const result = await withCacheFallback(
 			// Cache operation
 			async () => {
