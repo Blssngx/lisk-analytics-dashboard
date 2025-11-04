@@ -65,6 +65,32 @@ const fetchTokenHolders = async (tokenId: string): Promise<TokenHolders> => {
 	return response.json();
 };
 
+export interface TokenStat {
+	value: string;
+	label: string;
+	description: string;
+	rawValue?: number;
+}
+
+export interface TokenStats {
+	stats: {
+		totalValueInCirculation: TokenStat;
+		uniqueUsers: TokenStat;
+		transactionsProcessed: TokenStat;
+	};
+	lastUpdated: string;
+	tokenSymbol: string;
+	tokenName: string;
+}
+
+const fetchTokenStats = async (tokenId: string): Promise<TokenStats> => {
+	const response = await fetch(`/api/tokens/${tokenId}/stats`);
+	if (!response.ok) {
+		throw new Error("Failed to fetch token stats");
+	}
+	return response.json();
+};
+
 // React Query hooks
 export const useTokens = () => {
 	return useQuery({
@@ -119,6 +145,16 @@ export const useTokenHolders = (tokenId: string) => {
 	return useQuery({
 		queryKey: ["tokenHolders", tokenId],
 		queryFn: () => fetchTokenHolders(tokenId),
+		enabled: !!tokenId,
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes
+	});
+};
+
+export const useTokenStats = (tokenId: string) => {
+	return useQuery({
+		queryKey: ["tokenStats", tokenId],
+		queryFn: () => fetchTokenStats(tokenId),
 		enabled: !!tokenId,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		gcTime: 10 * 60 * 1000, // 10 minutes
