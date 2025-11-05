@@ -1,116 +1,154 @@
-"use client";
-import React, { useState } from "react";
+import { Suspense } from "react";
+import type { Metadata } from "next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { MetricCard } from "@/components/metric-card";
-import { ChartCard } from "@/components/chart-card";
-import { Button } from "@/components/ui/button";
+import { ChartCardServer } from "@/components/chart-card-server";
 import { ChartAreaInteractive } from "@/components/charts/cumulative-growth-chart";
 import { WeeklyPaymentsChart } from "@/components/charts/weekly-payments-chart";
 import { UniqueWalletsDisplay } from "@/components/charts/unique-wallets-chart";
 import { TokenHoldersPieChart } from "@/components/charts/holders-pie-chart";
-import { PlayCircle, TrendingUp, Copy, Check } from "lucide-react";
-import {
-	useTokenBySymbol,
-	useCumulativeMetrics,
-	useWalletData,
-	useWeeklyPayments,
-	useTokenHolders,
-} from "@/hooks/use-token-data";
+import { TrendingUp } from "lucide-react";
+import { TokenDataService } from "@/lib/services/token-data-service";
+import { CopyButton } from "@/components/copy-button";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function SymbolPage({
+// Revalidate every 5 minutes (300 seconds)
+export const revalidate = 300;
+
+// Generate static params for known tokens
+export async function generateStaticParams() {
+	return [{ symbol: "lzar" }, { symbol: "lusd" }];
+}
+
+// Generate dynamic metadata for each token page
+export async function generateMetadata({
 	params,
-}: Readonly<{ params: Promise<Readonly<{ symbol: string }>> }>) {
-	const { symbol } = React.use(params);
+}: {
+	params: Promise<{ symbol: string }>;
+}): Promise<Metadata> {
+	const { symbol } = await params;
+	const symbolUpper = symbol.toUpperCase();
 
-	const CONTRACT_ADDRESSES: { [key: string]: string } = {
-		LZAR: process.env.NEXT_PUBLIC_LZAR_CONTRACT_ADDRESS || "",
-		LUSD: process.env.NEXT_PUBLIC_LUSD_CONTRACT_ADDRESS || "",
+	const tokenNames: Record<string, string> = {
+		LZAR: "Lisk ZAR",
+		LUSD: "Lisk USD",
 	};
 
+	const tokenDescriptions: Record<string, string> = {
+		LZAR: "South African Rand-backed stablecoin on the Lisk blockchain",
+		LUSD: "US Dollar-backed stablecoin on the Lisk blockchain",
+	};
+
+	const tokenName = tokenNames[symbolUpper] || symbolUpper;
+	const tokenDesc = tokenDescriptions[symbolUpper] || `${symbolUpper} token analytics`;
+
+	return {
+		title: `${symbolUpper} Analytics - ${tokenName}`,
+		description: `Real-time analytics for ${symbolUpper} (${tokenName}). Track transactions, unique holders, payment metrics, and network growth. ${tokenDesc}.`,
+		keywords: [
+			symbolUpper,
+			tokenName,
+			"Lisk",
+			"blockchain analytics",
+			"token metrics",
+			"cryptocurrency",
+			"stablecoin",
+			"DeFi",
+			"token holders",
+			"transaction volume",
+		],
+		openGraph: {
+			title: `${symbolUpper} Analytics - ${tokenName}`,
+			description: `Live analytics for ${symbolUpper} token. Track holders, transactions, and network metrics on Lisk blockchain.`,
+			url: `/dashboard/${symbol}`,
+			type: "website",
+			images: [
+				{
+					url: `/og-${symbol}.png`,
+					width: 1200,
+					height: 630,
+					alt: `${symbolUpper} Token Analytics Dashboard`,
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: `${symbolUpper} Analytics - ${tokenName}`,
+			description: `Live analytics for ${symbolUpper} token on Lisk blockchain.`,
+			images: [`/twitter-${symbol}.png`],
+		},
+		alternates: {
+			canonical: `/dashboard/${symbol}`,
+		},
+	};
+}
+
+const CONTRACT_ADDRESSES: { [key: string]: string } = {
+	LZAR: process.env.NEXT_PUBLIC_LZAR_CONTRACT_ADDRESS || "",
+	LUSD: process.env.NEXT_PUBLIC_LUSD_CONTRACT_ADDRESS || "",
+};
+
+/**
+ * Fetch all token data server-side
+ */
+async function getTokenData(symbol: string) {
+	try {
+		// Fetch token by symbol
+		const token = await TokenDataService.getTokenBySymbol(symbol.toUpperCase());
+
+		if (!token) {
+			return null;
+		}
+
+		// Fetch all data in parallel
+		const [metrics, wallets, payments, holders] = await Promise.all([
+			TokenDataService.getAllCumulativeMetrics(token.id),
+			TokenDataService.getAllWalletData(token.id),
+			TokenDataService.getAllPaymentData(token.id),
+			TokenDataService.getTokenHolders(token.id),
+		]);
+
+		return {
+			token,
+			metrics,
+			wallets,
+			payments,
+			holders,
+		};
+	} catch (error) {
+		console.error("Error fetching token data:", error);
+		return null;
+	}
+}
+
+/**
+ * Server Component - Dashboard Symbol Page
+ */
+export default async function SymbolPage({
+	params,
+}: Readonly<{ params: Promise<{ symbol: string }> }>) {
+	const { symbol } = await params;
 	const CONTRACT_ADDRESS = CONTRACT_ADDRESSES[symbol.toUpperCase()] || "";
 
-	// REST API cached data
-	const { data: tokenData, isLoading: tokenLoading } = useTokenBySymbol(symbol.toUpperCase());
-	const tokenId = tokenData?.id || "";
+	// Fetch data server-side
+	const data = await getTokenData(symbol);
 
-	// Only run these queries when we have a valid tokenId
-	const {
-		data: cumulativeGrowthData,
-		isLoading: cumulativeGrowthLoading,
-		error: cumulativeGrowthError,
-		refetch: refetchCumulativeGrowth,
-	} = useCumulativeMetrics(tokenId);
-	const {
-		data: uniqueWalletsData,
-		isLoading: uniqueWalletsLoading,
-		error: uniqueWalletsError,
-		refetch: refetchUniqueWallets,
-	} = useWalletData(tokenId);
-	const {
-		data: weeklyPaymentsData,
-		isLoading: weeklyPaymentsLoading,
-		error: weeklyPaymentsError,
-		refetch: refetchWeeklyPayments,
-	} = useWeeklyPayments(tokenId);
-	const {
-		data: tokenHoldersData,
-		isLoading: tokenHoldersLoading,
-		error: tokenHoldersError,
-		refetch: refetchTokenHolders,
-	} = useTokenHolders(tokenId);
+	if (!data) {
+		return (
+			<DashboardLayout>
+				<div className="p-6">
+					<div className="text-center py-12">
+						<h1 className="text-2xl font-bold text-white mb-2">Token Not Found</h1>
+						<p className="text-gray-400">
+							The token "{symbol.toUpperCase()}" could not be found.
+						</p>
+					</div>
+				</div>
+			</DashboardLayout>
+		);
+	}
 
-	const [loadingStates, setLoadingStates] = useState({
-		cumulativeGrowth: false,
-		uniqueWallets: false,
-		weeklyPayments: false,
-		tokenHolders: false,
-		allQueries: false,
-	});
-
-	const runQuery = async (queryType: keyof typeof loadingStates) => {
-		setLoadingStates((prev) => ({ ...prev, [queryType]: true }));
-		try {
-			switch (queryType) {
-				case "cumulativeGrowth":
-					await refetchCumulativeGrowth();
-					break;
-				case "uniqueWallets":
-					await refetchUniqueWallets();
-					break;
-				case "weeklyPayments":
-					await refetchWeeklyPayments();
-					break;
-				case "tokenHolders":
-					await refetchTokenHolders();
-					break;
-			}
-		} finally {
-			setLoadingStates((prev) => ({ ...prev, [queryType]: false }));
-		}
-	};
-
-	const runAllQueries = async () => {
-		setLoadingStates((prev) => ({ ...prev, allQueries: true }));
-		try {
-			await Promise.all([
-				refetchCumulativeGrowth(),
-				refetchUniqueWallets(),
-				refetchWeeklyPayments(),
-				refetchTokenHolders(),
-			]);
-		} finally {
-			setLoadingStates((prev) => ({ ...prev, allQueries: false }));
-		}
-	};
-
-	const [copied, setCopied] = useState(false);
-	const copyToClipboard = async (text: string) => {
-		try {
-			await navigator.clipboard.writeText(text);
-			setCopied(true);
-			setTimeout(() => setCopied(false), 2000);
-		} catch {}
-	};
+	const { metrics, wallets, payments, holders } = data;
 
 	return (
 		<DashboardLayout>
@@ -131,114 +169,79 @@ export default function SymbolPage({
 								Comprehensive analytics for {symbol.toUpperCase()} token on the Lisk
 								network
 							</p>
-						</div>
-						<div className="flex gap-2">
-							<Button
-								onClick={runAllQueries}
-								disabled={loadingStates.allQueries}
-								className="bg-green-600 hover:bg-green-700 text-white px-6 py-2">
-								<PlayCircle className="h-4 w-4 mr-2" />
-								{loadingStates.allQueries
-									? "Running All Queries..."
-									: "Run All Queries"}
-							</Button>
+							<p className="text-xs text-gray-500 mt-1">
+								Data refreshes every 5 minutes
+							</p>
 						</div>
 					</div>
 				</div>
+
 				{/* Key Metrics */}
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<MetricCard
 						title="Total Supply"
 						value={`${
-							tokenHoldersData ? tokenHoldersData.totalSupply.toLocaleString() : "N/A"
+							holders?.totalSupply.toLocaleString() || "N/A"
 						} ${symbol.toUpperCase()}`}
-						error={tokenHoldersError ? "Failed to load total supply" : undefined}
-						isLoading={tokenHoldersLoading || tokenLoading}
-						subtitle={
-							tokenHoldersLoading
-								? "Fetching from blockchain..."
-								: "Live from blockchain"
-						}
+						subtitle="Live from blockchain"
 					/>
 					<MetricCard
 						title="Contract Address"
 						value={`${CONTRACT_ADDRESS.slice(0, 8)}...${CONTRACT_ADDRESS.slice(-6)}`}
-						subtitle={"Token Contract address"}>
-						<Button
-							onClick={() => copyToClipboard(CONTRACT_ADDRESS)}
-							variant="ghost"
-							size="sm"
-							className="text-gray-400 hover:text-white">
-							{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-						</Button>
+						subtitle="Token Contract address">
+						<CopyButton text={CONTRACT_ADDRESS} />
 					</MetricCard>
 				</div>
 
 				{/* Charts */}
 				<div className="space-y-6">
-					<ChartCard
-						title="Transactions"
-						description={`Cumulative transaction count and total volume for ${symbol.toUpperCase()} over time.`}
-						isLoading={cumulativeGrowthLoading}
-						error={
-							cumulativeGrowthError
-								? "Failed to load cumulative growth data"
-								: undefined
-						}
-						onRunQuery={() => runQuery("cumulativeGrowth")}
-						cooldownKey="cooldown:cumulative-growth">
-						<ChartAreaInteractive
-							data={cumulativeGrowthData}
-							isLoading={cumulativeGrowthLoading}
-							symbol={symbol.toUpperCase()}
-						/>
-					</ChartCard>
-					{uniqueWalletsData && (
-						<ChartCard
-							title="Unique Wallets"
-							description={`Unique wallets and new wallets over time for ${symbol.toUpperCase()}.`}
-							isLoading={uniqueWalletsLoading}
-							error={
-								uniqueWalletsError
-									? "Failed to load unique wallets data"
-									: undefined
-							}
-							onRunQuery={() => runQuery("uniqueWallets")}
-							cooldownKey="cooldown:unique-wallets">
-							<UniqueWalletsDisplay data={uniqueWalletsData} />
-						</ChartCard>
+					<Suspense fallback={<ChartSkeleton />}>
+						<ChartCardServer
+							title="Transactions"
+							description={`Cumulative transaction count and total volume for ${symbol.toUpperCase()} over time.`}>
+							<ChartAreaInteractive data={metrics} symbol={symbol.toUpperCase()} />
+						</ChartCardServer>
+					</Suspense>
+
+					{wallets && wallets.length > 0 && (
+						<Suspense fallback={<ChartSkeleton />}>
+							<ChartCardServer
+								title="Unique Wallets"
+								description={`Unique wallets and new wallets over time for ${symbol.toUpperCase()}.`}>
+								<UniqueWalletsDisplay data={wallets} />
+							</ChartCardServer>
+						</Suspense>
 					)}
 
-					<ChartCard
-						title="Weekly Interest Payments"
-						description="Weekly interest payments: toggle between payment count, total amount paid and average payments per week."
-						isLoading={weeklyPaymentsLoading}
-						error={
-							weeklyPaymentsError ? "Failed to load weekly payments data" : undefined
-						}
-						onRunQuery={() => runQuery("weeklyPayments")}
-						cooldownKey="cooldown:weekly-payments">
-						<WeeklyPaymentsChart
-							data={weeklyPaymentsData}
-							symbol={symbol.toUpperCase()}
-						/>
-					</ChartCard>
+					<Suspense fallback={<ChartSkeleton />}>
+						<ChartCardServer
+							title="Weekly Interest Payments"
+							description="Weekly interest payments: toggle between payment count, total amount paid and average payments per week.">
+							<WeeklyPaymentsChart data={payments} symbol={symbol.toUpperCase()} />
+						</ChartCardServer>
+					</Suspense>
 
-					<ChartCard
-						title="Token Holders Distribution"
-						description="Distribution of token holders by balance size categories."
-						isLoading={tokenHoldersLoading}
-						error={tokenHoldersError ? "Failed to load token holders data" : undefined}
-						onRunQuery={() => runQuery("tokenHolders")}
-						cooldownKey="cooldown:token-holders">
-						<TokenHoldersPieChart
-							data={tokenHoldersData}
-							symbol={symbol.toUpperCase()}
-							isLoading={tokenHoldersLoading}
-						/>
-					</ChartCard>
+					<Suspense fallback={<ChartSkeleton />}>
+						<ChartCardServer
+							title="Token Holders Distribution"
+							description="Distribution of token holders by balance size categories.">
+							<TokenHoldersPieChart data={holders} symbol={symbol.toUpperCase()} />
+						</ChartCardServer>
+					</Suspense>
 				</div>
 			</div>
 		</DashboardLayout>
+	);
+}
+
+/**
+ * Loading skeleton for charts
+ */
+function ChartSkeleton() {
+	return (
+		<div className="rounded-xl border border-gray-800 p-6">
+			<Skeleton className="h-8 w-48 mb-4" />
+			<Skeleton className="h-[300px] w-full" />
+		</div>
 	);
 }

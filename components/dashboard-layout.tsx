@@ -14,10 +14,7 @@ export function DashboardLayout({ children }: Readonly<DashboardLayoutProps>) {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const pathname = usePathname();
 
-	const navigation = [
-		{ name: "LZAR", href: "/dashboard/lzar" },
-		{ name: "LUSD", href: "/dashboard/lusd" },
-	];
+	const navigation = [{ name: "LZAR", href: "/dashboard/lzar" }];
 
 	const isActive = (href: string) => pathname === href;
 
