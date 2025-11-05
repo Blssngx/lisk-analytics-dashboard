@@ -10,19 +10,19 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
  */
 async function calculateTokenStats(tokenId: string, tokenSymbol: string) {
 	// Fetch only the data needed for the three core stats
-	const [token, metrics, wallets] = await Promise.all([
-		TokenDataService.getToken(tokenId),
+	const [holders, metrics, wallets] = await Promise.all([
+		TokenDataService.getTokenHolders(tokenId),
 		TokenDataService.getAllCumulativeMetrics(tokenId),
 		TokenDataService.getAllWalletData(tokenId),
 	]);
 
-	if (!token) {
+	if (!holders) {
 		throw new Error(`Token not found: ${tokenId}`);
 	}
 
 	// Calculate the three core stats
 	// 1. Total Value in Circulation
-	const totalSupply = Number(token?.totalSupply) || 0;
+	const totalSupply = Number(holders?.totalSupply) || 0;
 
 	// 2. Unique Users
 	const latestWalletData = wallets.length > 0 ? wallets.at(-1) : null;
