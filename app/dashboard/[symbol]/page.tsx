@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { MetricCard } from "@/components/metric-card";
 import { ChartCardServer } from "@/components/chart-card-server";
@@ -17,6 +18,69 @@ export const revalidate = 300;
 // Generate static params for known tokens
 export async function generateStaticParams() {
 	return [{ symbol: "lzar" }, { symbol: "lusd" }];
+}
+
+// Generate dynamic metadata for each token page
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ symbol: string }>;
+}): Promise<Metadata> {
+	const { symbol } = await params;
+	const symbolUpper = symbol.toUpperCase();
+
+	const tokenNames: Record<string, string> = {
+		LZAR: "Lisk ZAR",
+		LUSD: "Lisk USD",
+	};
+
+	const tokenDescriptions: Record<string, string> = {
+		LZAR: "South African Rand-backed stablecoin on the Lisk blockchain",
+		LUSD: "US Dollar-backed stablecoin on the Lisk blockchain",
+	};
+
+	const tokenName = tokenNames[symbolUpper] || symbolUpper;
+	const tokenDesc = tokenDescriptions[symbolUpper] || `${symbolUpper} token analytics`;
+
+	return {
+		title: `${symbolUpper} Analytics - ${tokenName}`,
+		description: `Real-time analytics for ${symbolUpper} (${tokenName}). Track transactions, unique holders, payment metrics, and network growth. ${tokenDesc}.`,
+		keywords: [
+			symbolUpper,
+			tokenName,
+			"Lisk",
+			"blockchain analytics",
+			"token metrics",
+			"cryptocurrency",
+			"stablecoin",
+			"DeFi",
+			"token holders",
+			"transaction volume",
+		],
+		openGraph: {
+			title: `${symbolUpper} Analytics - ${tokenName}`,
+			description: `Live analytics for ${symbolUpper} token. Track holders, transactions, and network metrics on Lisk blockchain.`,
+			url: `/dashboard/${symbol}`,
+			type: "website",
+			images: [
+				{
+					url: `/og-${symbol}.png`,
+					width: 1200,
+					height: 630,
+					alt: `${symbolUpper} Token Analytics Dashboard`,
+				},
+			],
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: `${symbolUpper} Analytics - ${tokenName}`,
+			description: `Live analytics for ${symbolUpper} token on Lisk blockchain.`,
+			images: [`/twitter-${symbol}.png`],
+		},
+		alternates: {
+			canonical: `/dashboard/${symbol}`,
+		},
+	};
 }
 
 const CONTRACT_ADDRESSES: { [key: string]: string } = {
