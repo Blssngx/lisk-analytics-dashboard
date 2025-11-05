@@ -82,7 +82,7 @@ export default async function SymbolPage({ params }: { params: Promise<{ symbol:
 		);
 	}
 
-	const { token, metrics, wallets, payments, holders } = data;
+	const { metrics, wallets, payments, holders } = data;
 
 	return (
 		<DashboardLayout>
