@@ -3,38 +3,7 @@ import { TokenDataService } from "@/lib/services/token-data-service";
 import { withCacheFallback } from "@/lib/cache-middleware";
 import { CacheService, CACHE_TTL } from "@/lib/services/cache-service";
 import { AllTokensStats } from "@/types";
-
-/**
- * Format large numbers with appropriate suffixes (K, M, B)
- */
-function formatNumber(num: number): string {
-	if (num >= 1_000_000_000) {
-		return `${(num / 1_000_000_000).toFixed(1)}B`;
-	}
-	if (num >= 1_000_000) {
-		return `${(num / 1_000_000).toFixed(1)}M`;
-	}
-	if (num >= 1_000) {
-		return `${(num / 1_000).toFixed(1)}K`;
-	}
-	return num.toLocaleString();
-}
-
-/**
- * Format currency values with R prefix
- */
-function formatCurrency(num: number): string {
-	if (num >= 1_000_000_000) {
-		return `R${(num / 1_000_000_000).toFixed(1)}B`;
-	}
-	if (num >= 1_000_000) {
-		return `R${(num / 1_000_000).toFixed(1)}M`;
-	}
-	if (num >= 1_000) {
-		return `R${(num / 1_000).toFixed(1)}K`;
-	}
-	return `R${num.toLocaleString()}`;
-}
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 /**
  * Calculate stats for a single token
@@ -53,23 +22,22 @@ async function calculateTokenStats(tokenId: string, tokenSymbol: string) {
 
 	// Calculate the three core stats
 	// 1. Total Value in Circulation
-	const totalSupply = Number(token.totalSupply) || 0;
-	const circulatingSupply = Number(token.circulatingSupply) || totalSupply;
+	const totalSupply = Number(token?.totalSupply) || 0;
 
 	// 2. Unique Users
-	const latestWalletData = wallets.length > 0 ? wallets[wallets.length - 1] : null;
+	const latestWalletData = wallets.length > 0 ? wallets.at(-1) : null;
 	const uniqueUsers = latestWalletData?.uniqueWalletCount || 0;
 
 	// 3. Total Transactions Processed
-	const latestMetrics = metrics.length > 0 ? metrics[metrics.length - 1] : null;
+	const latestMetrics = metrics.length > 0 ? metrics.at(-1) : null;
 	const totalTransactions = latestMetrics?.cumulativeTxCount || 0;
 
 	return {
 		totalValueInCirculation: {
-			value: formatCurrency(circulatingSupply),
+			value: formatCurrency(totalSupply),
 			label: "Total Value in Circulation",
 			description: `Every token backed 1:1 with rand reserves, powering payments and rewards across the country.`,
-			rawValue: circulatingSupply,
+			rawValue: totalSupply,
 		},
 		uniqueUsers: {
 			value: formatNumber(uniqueUsers),
