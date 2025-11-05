@@ -60,7 +60,9 @@ async function getTokenData(symbol: string) {
 /**
  * Server Component - Dashboard Symbol Page
  */
-export default async function SymbolPage({ params }: { params: Promise<{ symbol: string }> }) {
+export default async function SymbolPage({
+	params,
+}: Readonly<{ params: Promise<{ symbol: string }> }>) {
 	const { symbol } = await params;
 	const CONTRACT_ADDRESS = CONTRACT_ADDRESSES[symbol.toUpperCase()] || "";
 
