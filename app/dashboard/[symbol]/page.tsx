@@ -148,7 +148,7 @@ export default async function SymbolPage({
 		);
 	}
 
-	const { metrics, wallets, payments, holders } = data;
+	const { metrics, wallets, holders } = data;
 
 	return (
 		<DashboardLayout>
@@ -213,13 +213,13 @@ export default async function SymbolPage({
 						</Suspense>
 					)}
 
-					<Suspense fallback={<ChartSkeleton />}>
+					{/* <Suspense fallback={<ChartSkeleton />}>
 						<ChartCardServer
 							title="Weekly Interest Payments"
 							description="Weekly interest payments: toggle between payment count, total amount paid and average payments per week.">
 							<WeeklyPaymentsChart data={payments} symbol={symbol.toUpperCase()} />
 						</ChartCardServer>
-					</Suspense>
+					</Suspense> */}
 
 					<Suspense fallback={<ChartSkeleton />}>
 						<ChartCardServer
