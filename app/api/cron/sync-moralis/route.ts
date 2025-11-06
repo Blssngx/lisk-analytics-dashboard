@@ -13,7 +13,6 @@ const prisma = new PrismaClient();
 // Configuration for supported contracts
 const SUPPORTED_CONTRACTS = {
 	LZAR: process.env.NEXT_PUBLIC_LZAR_CONTRACT_ADDRESS || "",
-	LUSD: process.env.NEXT_PUBLIC_LUSD_CONTRACT_ADDRESS || "",
 } as const;
 
 // Available query endpoints
