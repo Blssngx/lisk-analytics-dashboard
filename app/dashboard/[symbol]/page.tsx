@@ -16,7 +16,7 @@ export const revalidate = 300;
 
 // Generate static params for known tokens
 export async function generateStaticParams() {
-	return [{ symbol: "lzar" }, { symbol: "lusd" }];
+	return [{ symbol: "lzar" }];
 }
 
 // Generate dynamic metadata for each token page
