@@ -4,7 +4,6 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { MetricCard } from "@/components/metric-card";
 import { ChartCardServer } from "@/components/chart-card-server";
 import { ChartAreaInteractive } from "@/components/charts/cumulative-growth-chart";
-import { WeeklyPaymentsChart } from "@/components/charts/weekly-payments-chart";
 import { UniqueWalletsDisplay } from "@/components/charts/unique-wallets-chart";
 import { TokenHoldersPieChart } from "@/components/charts/holders-pie-chart";
 import { TrendingUp } from "lucide-react";
