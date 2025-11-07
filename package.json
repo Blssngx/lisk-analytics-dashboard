@@ -13,8 +13,11 @@
     "cache:stats": "node scripts/cache-stats-simple.js",
     "db:generate": "pnpm dlx prisma generate",
     "db:migrate": "pnpm dlx prisma migrate dev",
-    "db:seed": "node scripts/seed-tokens.js",
+    "db:seed": "pnpm dlx prisma db seed",
     "type-check": "tsc --noEmit"
+  },
+   "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@apollo/client": "^3.13.9",
