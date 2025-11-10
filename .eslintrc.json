@@ -1,0 +1,29 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    "public/",
+    "dist/",
+    "build/",
+    ".next/",
+    "out/",
+    "coverage/",
+    "scripts/",
+    "lib/",
+    "prisma/",
+    "graphql/",
+    "migrations/",
+    "*.config.js",
+    "*.config.cjs",
+    "*.config.mjs",
+    "*.config.ts",
+    "*.d.ts",
+    "**/lib/generated"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "warn"
+  }
+}
