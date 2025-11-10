@@ -152,7 +152,8 @@ export async function GET(request: NextRequest) {
 			const lastSync = await getLastSync(address);
 			if (
 				lastSync?.lastSyncAt &&
-				Date.now() - new Date(lastSync.lastSyncAt).getTime() < SYNC_INTERVAL_MS
+				Date.now() - new Date(lastSync.lastSyncAt).getTime() < SYNC_INTERVAL_MS &&
+				lastSync.syncStatus === "success" // Only skip if last sync was successful
 			) {
 				console.log(
 					`⏩ Skipping ${address} (${name}) - last sync at ${lastSync.lastSyncAt}`,
